@@ -1,7 +1,11 @@
+/**
+ * Created by hydr93 on 09/03/16.
+ */
+
 var PlayerTracker = require('../PlayerTracker');
 var gameServer = require('../GameServer');
 
-function BotPlayer() {
+function QBot() {
     PlayerTracker.apply(this, Array.prototype.slice.call(arguments));
     //this.color = gameServer.getRandomColor();
 
@@ -29,12 +33,12 @@ function BotPlayer() {
     };
 }
 
-module.exports = BotPlayer;
-BotPlayer.prototype = new PlayerTracker();
+module.exports = QBot;
+QBot.prototype = new PlayerTracker();
 
 // Functions
 
-BotPlayer.prototype.getLowestCell = function() {
+QBot.prototype.getLowestCell = function() {
     // Gets the cell with the lowest mass
     if (this.cells.length <= 0) {
         return null; // Error!
@@ -50,7 +54,7 @@ BotPlayer.prototype.getLowestCell = function() {
     return lowest;
 };
 
-BotPlayer.prototype.getHighestCell = function() {
+QBot.prototype.getHighestCell = function() {
     // Gets the cell with the highest mass
     if (this.cells.length <= 0) {
         return null; // Error!
@@ -68,19 +72,19 @@ BotPlayer.prototype.getHighestCell = function() {
 
 // Don't override, testing to use more accurate way.
 /*
-BotPlayer.prototype.updateSightRange = function() { // For view distance
-    var range = 1000; // Base sight range
+ QBot.prototype.updateSightRange = function() { // For view distance
+ var range = 1000; // Base sight range
 
-    if (this.cells[0]) {
-        range += this.cells[0].getSize() * 2.5;
-    }
+ if (this.cells[0]) {
+ range += this.cells[0].getSize() * 2.5;
+ }
 
-    this.sightRangeX = range;
-    this.sightRangeY = range;
-}; */
+ this.sightRangeX = range;
+ this.sightRangeY = range;
+ }; */
 
 // Overrides the update function from player tracker
-BotPlayer.prototype.update = function() {
+QBot.prototype.update = function() {
     // Remove nodes from visible nodes if possible
     for (var i = 0; i < this.nodeDestroyQueue.length; i++) {
         var index = this.visibleNodes.indexOf(this.nodeDestroyQueue[i]);
@@ -105,7 +109,8 @@ BotPlayer.prototype.update = function() {
     // Should bot update?
     var shouldUpdate = false;
 
-    if (!this.target) shouldUpdate = true; // Missing target
+    if (!this.target)
+        shouldUpdate = true; // Missing target
     else {
         // Target is present, update target position
         this.targetPos = {
@@ -199,12 +204,14 @@ BotPlayer.prototype.update = function() {
 
     // Action
     this.decide(cell);
+    this.getDirection(cell,check);
 
     // Now update mouse
     this.mouse = {
         x: this.targetPos.x,
         y: this.targetPos.y
-    }
+    };
+
 
     // Reset queues
     this.nodeDestroyQueue = [];
@@ -213,7 +220,7 @@ BotPlayer.prototype.update = function() {
 
 // Custom
 
-BotPlayer.prototype.updatePrey = function(cell) {
+QBot.prototype.updatePrey = function(cell) {
     // Recalculate prey
     this.prey = [];
     for (var i in this.visibleNodes) {
@@ -225,7 +232,7 @@ BotPlayer.prototype.updatePrey = function(cell) {
     }
 };
 
-BotPlayer.prototype.shouldUpdateNodes = function() {
+QBot.prototype.shouldUpdateNodes = function() {
     if ((this.tickViewBox <= 0) && (this.gameServer.run)) {
         this.visibleNodes = this.calcViewBox();
         this.tickViewBox = 6;
@@ -235,7 +242,7 @@ BotPlayer.prototype.shouldUpdateNodes = function() {
     }
 };
 
-BotPlayer.prototype.clearLists = function() {
+QBot.prototype.clearLists = function() {
     this.predators = [];
     this.threats = [];
     this.prey = [];
@@ -244,7 +251,7 @@ BotPlayer.prototype.clearLists = function() {
     this.juke = false;
 };
 
-BotPlayer.prototype.getState = function(cell) {
+QBot.prototype.getState = function(cell) {
     // Continue to shoot viruses
     if (this.gameState == 4) {
         return 4;
@@ -276,7 +283,7 @@ BotPlayer.prototype.getState = function(cell) {
     return 0;
 };
 
-BotPlayer.prototype.decide = function(cell) {
+QBot.prototype.decide = function(cell) {
     // The bot decides what to do based on gamestate
     switch (this.gameState) {
         case 0: // Wander
@@ -460,7 +467,7 @@ BotPlayer.prototype.decide = function(cell) {
 };
 
 // Finds the nearest cell in list
-BotPlayer.prototype.findNearest = function(cell, list) {
+QBot.prototype.findNearest = function(cell, list) {
     if (this.currentTarget) {
         // Do not check for food if target already exists
         return null;
@@ -481,13 +488,13 @@ BotPlayer.prototype.findNearest = function(cell, list) {
     return shortest;
 };
 
-BotPlayer.prototype.getRandom = function(list) {
+QBot.prototype.getRandom = function(list) {
     // Gets a random cell from the array
     var n = Math.floor(Math.random() * list.length);
     return list[n];
 };
 
-BotPlayer.prototype.combineVectors = function(list) {
+QBot.prototype.combineVectors = function(list) {
     // Gets the angles of all enemies approaching the cell
     var pos = {
         x: 0,
@@ -507,7 +514,7 @@ BotPlayer.prototype.combineVectors = function(list) {
     return pos;
 };
 
-BotPlayer.prototype.checkPath = function(cell, check) {
+QBot.prototype.checkPath = function(cell, check) {
     // Checks if the cell is in the way
 
     // Get angle of vector (cell -> path)
@@ -524,7 +531,7 @@ BotPlayer.prototype.checkPath = function(cell, check) {
     }
 };
 
-BotPlayer.prototype.getBiggest = function(list) {
+QBot.prototype.getBiggest = function(list) {
     // Gets the biggest cell from the array
     var biggest = list[0];
     for (var i = 1; i < list.length; i++) {
@@ -537,7 +544,7 @@ BotPlayer.prototype.getBiggest = function(list) {
     return biggest;
 };
 
-BotPlayer.prototype.findNearbyVirus = function(cell, checkDist, list) {
+QBot.prototype.findNearbyVirus = function(cell, checkDist, list) {
     var r = cell.getSize() + 100; // Gets radius + virus radius
     for (var i = 0; i < list.length; i++) {
         var check = list[i];
@@ -549,7 +556,7 @@ BotPlayer.prototype.findNearbyVirus = function(cell, checkDist, list) {
     return false; // Returns a bool if no nearby viruses are found
 };
 
-BotPlayer.prototype.checkPath = function(cell, check) {
+QBot.prototype.checkPath = function(cell, check) {
     // Get angle of path
     var v1 = Math.atan2(cell.position.x - player.mouse.x, cell.position.y - player.mouse.y);
 
@@ -568,7 +575,7 @@ BotPlayer.prototype.checkPath = function(cell, check) {
     return false;
 };
 
-BotPlayer.prototype.getDist = function(cell, check) {
+QBot.prototype.getDist = function(cell, check) {
     // Fastest distance - I have a crappy computer to test with :(
     var xd = (check.position.x - cell.position.x);
     xd = xd < 0 ? xd * -1 : xd; // Math.abs is slow
@@ -579,7 +586,7 @@ BotPlayer.prototype.getDist = function(cell, check) {
     return (xd + yd);
 };
 
-BotPlayer.prototype.getAccDist = function(cell, check) {
+QBot.prototype.getAccDist = function(cell, check) {
     // Accurate Distance
     var xs = check.position.x - cell.position.x;
     xs = xs * xs;
@@ -590,13 +597,13 @@ BotPlayer.prototype.getAccDist = function(cell, check) {
     return Math.sqrt(xs + ys);
 };
 
-BotPlayer.prototype.getAngle = function(c1, c2) {
+QBot.prototype.getAngle = function(c1, c2) {
     var deltaY = c1.position.y - c2.position.y;
     var deltaX = c1.position.x - c2.position.x;
     return Math.atan2(deltaX, deltaY);
 };
 
-BotPlayer.prototype.reverseAngle = function(angle) {
+QBot.prototype.reverseAngle = function(angle) {
     if (angle > Math.PI) {
         angle -= Math.PI;
     } else {
@@ -604,3 +611,58 @@ BotPlayer.prototype.reverseAngle = function(angle) {
     }
     return angle;
 };
+
+QBot.prototype.getDirection = function(cell, check){
+
+    var deltaY = cell.position.y - check.position.y;
+    var deltaX = cell.position.x - check.position.x;
+
+    var angle = Math.atan2(deltaY, deltaX);
+
+    //console.log("Delta X: "+deltaX+"\nDelta Y: "+deltaY+"\nAngle: "+(angle*180/Math.PI));
+
+    var direction;
+    if ( angle < 0 )
+        angle += 2*Math.PI;
+
+
+    if ( angle < Math.PI/8 || angle >= (Math.PI*15)/8 ){
+        direction = 0;
+        //console.log("E");
+    }else if ( angle >= (Math.PI)/8 && angle < (Math.PI*3)/8 ){
+        direction = (Math.PI*2)/8;
+        //console.log("NE");
+    }else if ( angle >= (Math.PI*3)/8 && angle < (Math.PI*5)/8 ){
+        direction = (Math.PI*4)/8;
+        //console.log("N");
+    }else if ( angle >= (Math.PI*5)/8 && angle < (Math.PI*7)/8 ){
+        direction = (Math.PI*6)/8;
+        //console.log("NW");
+    }else if ( angle >= (Math.PI*7)/8 && angle < (Math.PI*9)/8 ){
+        direction = (Math.PI*8)/8;
+        //console.log("W");
+    }else if ( angle >= (Math.PI*9)/8 && angle < (Math.PI*11)/8 ){
+        direction = (Math.PI*10)/8;
+        //console.log("SW");
+    }else if ( angle >= (Math.PI*11)/8 && angle < (Math.PI*13)/8 ){
+        direction = (Math.PI*12)/8;
+        //console.log("S");
+    }else if ( angle >= (Math.PI*13)/8 && angle < (Math.PI*15)/8 ){
+        direction = (Math.PI*14)/8;
+        //console.log("SE");
+    }
+    if ( direction > Math.PI){
+        direction -= 2*Math.PI;
+    }
+    return direction;
+}
+
+QBot.prototype.convertLocationToVector = function(cell, check){
+    var distance = this.getDist(cell,check);
+    var direction = this.getDirection(cell, check);
+};
+
+QBot.prototype.convertVectorToLocation = function(cell, direction, distance){
+
+};
+

@@ -4,6 +4,7 @@
   "description": "Open source Agar.io server",
   "main": "src/index.js",
   "dependencies": {
+    "synaptic": "^1.0.2",
     "ws": "^1.0.1"
   },
   "devDependencies": {},

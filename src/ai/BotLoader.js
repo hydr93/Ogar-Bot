@@ -1,5 +1,6 @@
 // Project imports
 var BotPlayer = require('./BotPlayer');
+var QBot = require("./QBot");
 var FakeSocket = require('./FakeSocket');
 var PacketHandler = require('../PacketHandler');
 
@@ -33,7 +34,7 @@ BotLoader.prototype.loadNames = function() {
         var fs = require("fs"); // Import the util library
 
         // Read and parse the names - filter out whitespace-only names
-        this.randomNames = fs.readFileSync("/Users/hydr93/Developer/GitHub/Ogar/src/botnames.txt", "utf8").split(/[\r\n]+/).filter(function(x) {
+        this.randomNames = fs.readFileSync("/Users/hydr93/Developer/GitHub/Ogar-Bot/src/botnames.txt", "utf8").split(/[\r\n]+/).filter(function(x) {
             return x != ''; // filter empty names
         });
     } catch (e) {
@@ -45,7 +46,7 @@ BotLoader.prototype.loadNames = function() {
 
 BotLoader.prototype.addBot = function() {
     var s = new FakeSocket(this.gameServer);
-    s.playerTracker = new BotPlayer(this.gameServer, s);
+    s.playerTracker = new QBot(this.gameServer, s);
     s.packetHandler = new PacketHandler(this.gameServer, s);
 
     // Add to client list

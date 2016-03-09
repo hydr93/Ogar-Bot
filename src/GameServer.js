@@ -946,7 +946,7 @@ GameServer.prototype.updateCells = function() {
 GameServer.prototype.loadConfig = function() {
     try {
         // Load the contents of the config file
-        var load = ini.parse(fs.readFileSync('/Users/hydr93/Developer/GitHub/Ogar/src/gameserver.ini', 'utf-8'));
+        var load = ini.parse(fs.readFileSync('/Users/hydr93/Developer/GitHub/Ogar-Bot/src/gameserver.ini', 'utf-8'));
 
         // Replace all the default config's values with the loaded config's values
         for (var obj in load) {
@@ -957,7 +957,7 @@ GameServer.prototype.loadConfig = function() {
         console.log("[Game] Config not found... Generating new config");
 
         // Create a new config
-        fs.writeFileSync('/Users/hydr93/Developer/GitHub/Ogar/src/gameserver.ini', ini.stringify(this.config));
+        fs.writeFileSync('/Users/hydr93/Developer/GitHub/Ogar-Bot/src/gameserver.ini', ini.stringify(this.config));
     }
 };
 
