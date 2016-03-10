@@ -612,7 +612,7 @@ QBot.prototype.reverseAngle = function(angle) {
     return angle;
 };
 
-QBot.prototype.getDirection = function(cell, check){
+QBot.prototype.getDirectionFromLocation = function(cell, check){
 
     var deltaY = cell.position.y - check.position.y;
     var deltaX = cell.position.x - check.position.x;
@@ -655,14 +655,52 @@ QBot.prototype.getDirection = function(cell, check){
         direction -= 2*Math.PI;
     }
     return direction;
-}
-
-QBot.prototype.convertLocationToVector = function(cell, check){
-    var distance = this.getDist(cell,check);
-    var direction = this.getDirection(cell, check);
 };
 
-QBot.prototype.convertVectorToLocation = function(cell, direction, distance){
+QBot.prototype.getSpeedFromDistance = function(distance){
+    var speed;
+    if ( distance < 600 ){
+        speed = 30;
+    }else if ( distance < 1200){
+        speed = 90;
+    }else{
+        speed = 150;
+    }
+};
 
+QBot.prototype.getDistanceFromSpeed = function(speed){
+    var distance;
+    if (speed < 60){
+        distance = 300;
+    }else if ( speed < 120){
+        distance = 900;
+    }else{
+        distance = 1500;
+    }
+};
+
+QBot.prototype.convertLocationToStateVector = function(cell, check){
+    var distance = this.getDist(cell,check);
+    var speed = this.getSpeedFromDistance(distance);
+    var direction = this.getDirectionFromLocation(cell, check);
+    var stateVector = {
+        direction: direction,
+        speed: speed
+    }
+    return stateVector;
+};
+
+
+QBot.prototype.convertVectorToLocation = function(cell, stateVector){
+    var direction = stateVector.direction;
+    var speed = stateVector.speed;
+
+    var distance = this.getDistanceFromSpeed(speed);
+
+    var position = {
+        x: distance * Math.sin(direction),
+        y: distance * Math.sin(direction)
+    };
+    return position;
 };
 
