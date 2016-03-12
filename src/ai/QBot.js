@@ -13,14 +13,12 @@ function QBot() {
     this.gameState = 0;
     this.path = [];
 
-    this.predators = []; // List of cells that can eat this bot
+    this.allEnemies = [];
+
     this.threats = []; // List of cells that can eat this bot but are too far away
     this.prey = []; // List of cells that can be eaten by this bot
     this.food = [];
-    this.foodImportant = []; // Not used - Bots will attempt to eat this regardless of nearby prey/predators
     this.virus = []; // List of viruses
-
-    this.juke = false;
 
     this.target;
     this.targetVirus; // Virus used to shoot into the target
@@ -31,6 +29,11 @@ function QBot() {
         x: 0,
         y: 0
     };
+
+    this.state = new State;
+    this.action = new Action;
+
+    this.previousMass = 10;
 }
 
 module.exports = QBot;
@@ -38,6 +41,7 @@ QBot.prototype = new PlayerTracker();
 
 // Functions
 
+// Returns the lowest cell of the player
 QBot.prototype.getLowestCell = function() {
     // Gets the cell with the lowest mass
     if (this.cells.length <= 0) {
@@ -54,6 +58,7 @@ QBot.prototype.getLowestCell = function() {
     return lowest;
 };
 
+// Returns the highest cell of the player
 QBot.prototype.getHighestCell = function() {
     // Gets the cell with the highest mass
     if (this.cells.length <= 0) {
@@ -106,112 +111,35 @@ QBot.prototype.update = function() {
     // Calculate nodes
     this.visibleNodes = this.calcViewBox();
 
-    // Should bot update?
-    var shouldUpdate = false;
-
-    if (!this.target)
-        shouldUpdate = true; // Missing target
-    else {
-        // Target is present, update target position
-        this.targetPos = {
-            x: this.target.position.x,
-            y: this.target.position.y
-        }
-    }
-    if (this.centerPos.x == this.mouse.x && this.centerPos.y == this.mouse.y) shouldUpdate = true; // Bot is at "finish"
-    if (this.gameState == 4) shouldUpdate = true; // Keep looking when trying to explode somebody
-    if (Math.random() > 0.9) shouldUpdate = true; // Update randomly
-
-    if (!this.gameServer.run) shouldUpdate = false; // Override everything as server is paused
-
-    if (!shouldUpdate) {
-        // Just update mouse and leave
-        this.mouse = {
-            x: this.targetPos.x,
-            y: this.targetPos.y
-        }
-        return;
-    };
-
-    // Calc predators/prey
+    // Get Lowest cell of the bot
     var cell = this.getLowestCell();
     var r = cell.getSize();
     this.clearLists();
 
-    // Ignores targeting cells below this mass
-    var ignoreMass = cell.mass / 5;
+    // Assign Preys, Threats, Viruses & Foods
+    this.updateLists(cell);
 
-    // Loop
-    for (i in this.visibleNodes) {
-        var check = this.visibleNodes[i];
 
-        // Cannot target itself
-        if ((!check) || (cell.owner == check.owner)) {
-            continue;
-        }
 
-        var t = check.getType();
-        switch (t) {
-            case 0:
-                // Cannot target teammates
-                if (this.gameServer.gameMode.haveTeams) {
-                    if (check.owner.team == this.team) {
-                        continue;
-                    }
-                }
-
-                // Check for danger
-                if (cell.mass > (check.mass * 1.33) && check.mass > ignoreMass) {
-                    // Add to prey list
-                    this.prey.push(check);
-                } else if (check.mass > (cell.mass * 1.33)) {
-                    // Predator
-                    var dist = this.getDist(cell, check) - (r + check.getSize());
-                    if (dist < 300) {
-                        this.predators.push(check);
-                        if ((this.cells.length == 1) && (dist < 0)) {
-                            this.juke = true;
-                        }
-                    }
-                    this.threats.push(check);
-                } else {
-                    this.threats.push(check);
-                }
-                break;
-            case 1:
-                this.food.push(check);
-                break;
-            case 2: // Virus
-                if (!check.isMotherCell) this.virus.push(check); // Only real viruses! No mother cells
-                break;
-            case 3: // Ejected mass
-                if (cell.mass > 20) {
-                    this.food.push(check);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    // Get gamestate
-    var newState = this.getState(cell);
-    if ((newState != this.gameState) && (newState != 4)) {
-        // Clear target
-        this.target = null;
-    }
-    this.gameState = newState;
+    //// Get gamestate
+    //var newState = this.getState(cell);
+    //if ((newState != this.gameState) && (newState != 4)) {
+    //    // Clear target
+    //    this.target = null;
+    //}
+    //this.gameState = newState;
 
     // Action
     this.decide(cell);
-    this.getDirection(cell,check);
+
+    //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
+    //console.log("Destination Position\nX: "+this.targetPos.x+"\nY: "+this.targetPos.y);
 
     // Now update mouse
     this.mouse = {
         x: this.targetPos.x,
         y: this.targetPos.y
     };
-
 
     // Reset queues
     this.nodeDestroyQueue = [];
@@ -243,236 +171,78 @@ QBot.prototype.shouldUpdateNodes = function() {
 };
 
 QBot.prototype.clearLists = function() {
-    this.predators = [];
+    this.allEnemies = [];
     this.threats = [];
     this.prey = [];
     this.food = [];
     this.virus = [];
-    this.juke = false;
 };
 
-QBot.prototype.getState = function(cell) {
-    // Continue to shoot viruses
-    if (this.gameState == 4) {
-        return 4;
+QBot.prototype.getGameState = function(cell) {
+    var state;
+
+    if ( this.food.length > 0 ){
+        if ( this.allEnemies.length > 0){
+            state = 0;
+        }else{
+            state = 1;
+        }
+    }else{
+        state = 2;
     }
 
-    // Check for predators
-    if (this.predators.length <= 0) {
-        if (this.prey.length > 0) {
-            return 3;
-        } else if (this.food.length > 0) {
-            return 1;
-        }
-    } else if (this.threats.length > 0) {
-        if ((this.cells.length == 1) && (cell.mass > 180)) {
-            var t = this.getBiggest(this.threats);
-            var tl = this.findNearbyVirus(t, 500, this.virus);
-            if (tl != false) {
-                this.target = t;
-                this.targetVirus = tl;
-                return 4;
-            }
-        } else {
-            // Run
-            return 2;
-        }
-    }
-
-    // Bot wanders by default
-    return 0;
+    return state;
 };
 
 QBot.prototype.decide = function(cell) {
-    // The bot decides what to do based on gamestate
-    switch (this.gameState) {
-        case 0: // Wander
-            //console.log("[Bot] "+cell.getName()+": Wandering");
-            if ((this.centerPos.x == this.mouse.x) && (this.centerPos.y == this.mouse.y)) {
-                // Get a new position
-                var index = Math.floor(Math.random() * this.gameServer.nodes.length);
-                var randomNode = this.gameServer.nodes[index];
-                var pos = {
-                    x: 0,
-                    y: 0
-                };
+    var foodDirection,foodDistance,enemyDirection,enemyDistance,enemyMassDifference;
+    var actionDirection, actionSpeed;
 
-                if ((randomNode.getType() == 3) || (randomNode.getType() == 1)) {
-                    pos.x = randomNode.position.x;
-                    pos.y = randomNode.position.y;
-                } else {
-                    // Not a food/ejected cell
-                    pos = this.gameServer.getRandomPosition();
-                }
+    var gameState = this.getGameState(cell);
 
-                // Set bot's mouse coords to this location
-                this.targetPos = {
-                    x: pos.x,
-                    y: pos.y
-                };
-            }
+    switch ( gameState ){
+        case 0:
+            console.log("Q-Learning");
+            //var nearestThreat = this.findNearest(cell, this.threats);
+            //var nearestPrey = this.findNearest(cell, this.prey);
+            var nearestVirus = this.findNearest(cell, this.virus);
+
+            //var nearestEnemy = this.findNearest(cell, this.allEnemies);
+            var nearestFood = this.findNearest(cell, this.food);
+
+
             break;
-        case 1: // Looking for food
-            //console.log("[Bot] "+cell.getName()+": Getting Food");
-            this.target = this.findNearest(cell, this.food);
+        case 1:
+            console.log("Nearest Food");
+            var nearestFood = this.findNearest(cell, this.food);
 
+            // Set bot's mouse coords to this location
             this.targetPos = {
-                x: this.target.position.x,
-                y: this.target.position.y
+                x: nearestFood.position.x,
+                y: nearestFood.position.y
             };
             break;
-        case 2: // Run from (potential) predators
-            var avoid = this.combineVectors(this.predators);
-            //console.log("[Bot] "+cell.getName()+": Fleeing from "+avoid.getName());
-
-            // Find angle of vector between cell and predator
-            var deltaY = avoid.y - cell.position.y;
-            var deltaX = avoid.x - cell.position.x;
-            var angle = Math.atan2(deltaX, deltaY);
-
-            // Now reverse the angle
-            angle = this.reverseAngle(angle);
-
-            // Direction to move
-            var x1 = cell.position.x + (700 * Math.sin(angle));
-            var y1 = cell.position.y + (700 * Math.cos(angle));
-
-            this.targetPos = {
-                x: x1,
-                y: y1
-            };
-
-            if (this.juke) {
-                // Juking
-                this.gameServer.splitCells(this);
-            }
-
-            break;
-        case 3: // Target prey
-            // Recalculate prey based on bot's biggest cell
-            this.updatePrey(this.getHighestCell());
-
-            if ((!this.target) || (cell.mass < (this.target.mass * 1.33)) || (this.visibleNodes.indexOf(this.target) == -1)) {
-                if (this.prey.length == 0) break; // Error!
-
-                this.target = this.getBiggest(this.prey);
-            }
-            //console.log("[Bot] "+cell.getName()+": Targeting "+this.target.getName());
-
-            this.targetPos = {
-                x: this.target.position.x,
-                y: this.target.position.y
-            };
-
-            var massReq = 1.33 * (this.target.mass * 2); // Mass required to splitkill the target
-
-            if ((cell.mass > massReq) && (this.cells.length < 3)) { // Will not split into more than 2 cells
-                // Fast calculation of how long will the cell go after it has been split
-                var splitDist = this.gameServer.config.playerSpeed * Math.pow(cell.mass / 2, -0.085) * 50 / 40 * 30;
-
-                var distToTarget = this.getAccDist(cell, this.target); // Distance between the target and this cell
-
-                if (splitDist >= distToTarget) {
-                    if ((this.threats.length > 0) && (this.getBiggest(this.threats).mass > (cell.mass / 1.5))) {
-                        // Dont splitkill when they are cells that can possibly eat you after the split
-                        break;
-                    }
-                    // Splitkill
-                    this.gameServer.splitCells(this);
-                }
-            }
-            break;
-        case 4: // Shoot virus
-            if ((!this.target) || (!this.targetVirus) || (!this.cells.length == 1) || (this.visibleNodes.indexOf(this.target) == -1) || (this.visibleNodes.indexOf(this.targetVirus) == -1)) {
-                this.gameState = 0; // Reset
-                this.target = null;
-                break;
-            }
-
-            // Make sure target is within range
-            var dist = this.getDist(this.targetVirus, this.target) - (this.target.getSize() + 100);
-            if (dist > 500) {
-                this.gameState = 0; // Reset
-                this.target = null;
-                break;
-            }
-
-            // Find angle of vector between target and virus
-            var angle = this.getAngle(this.target, this.targetVirus);
-
-            // Now reverse the angle
-            var reversed = this.reverseAngle(angle);
-
-            // Get this bot cell's angle
-            var ourAngle = this.getAngle(cell, this.targetVirus);
-
-            // Check if bot cell is in position
-            if ((ourAngle <= (reversed + .25)) && (ourAngle >= (reversed - .25))) {
-                // In position!
-                this.targetPos = {
-                    x: this.targetVirus.position.x,
-                    y: this.targetVirus.position.y
-                };
-
-                // Shoot
-                if (this.virusShots < this.gameServer.config.virusFeedAmount) {
-                    this.gameServer.ejectMass(this);
-                    break;
-                }
-
-                // Cleanup
-                this.gameState = 0; // Reset
-                this.virusShots = 0;
-                this.target = null;
-            } else {
-                // Move to position
-                var r = cell.getSize();
-                var x1 = this.targetVirus.position.x + ((350 + r) * Math.sin(reversed));
-                var y1 = this.targetVirus.position.y + ((350 + r) * Math.cos(reversed));
-                this.targetPos = {
-                    x: x1,
-                    y: y1
-                };
-            }
-
-            // console.log("[Bot] "+cell.getName()+": Targeting (virus) "+this.target.getName());
-            break;
+        case 2:
+            // Random??
         default:
-            //console.log("[Bot] "+cell.getName()+": Idle "+this.gameState);
-            this.target = this.findNearest(cell, this.food);
-
+            // Random right now
+            console.log("Random");
+            var action = this.getRandomAction();
+            var targetLocation = this.getLocationFromAction(cell, action)
             this.targetPos = {
-                x: this.target.position.x,
-                y: this.target.position.y
+                x: targetLocation.x,
+                y: targetLocation.y
             };
-            this.gameState = 1;
             break;
     }
 
-    // Recombining
-    if (this.cells.length > 1) {
-        var r = 0;
-        // Get amount of cells that can merge
-        for (var i in this.cells) {
-            if (this.cells[i].shouldRecombine) {
-                r++;
-            }
-        }
-        // Merge
-        if (r >= 2) {
-            this.mouse.x = this.centerPos.x;
-            this.mouse.y = this.centerPos.y;
-        }
-    }
 };
 
 // Finds the nearest cell in list
 QBot.prototype.findNearest = function(cell, list) {
-    if (this.currentTarget) {
-        // Do not check for food if target already exists
+    if ( list.length <= 0 ){
         return null;
     }
-
     // Check for nearest cell in list
     var shortest = list[0];
     var shortestDist = this.getDist(cell, shortest);
@@ -488,61 +258,6 @@ QBot.prototype.findNearest = function(cell, list) {
     return shortest;
 };
 
-QBot.prototype.getRandom = function(list) {
-    // Gets a random cell from the array
-    var n = Math.floor(Math.random() * list.length);
-    return list[n];
-};
-
-QBot.prototype.combineVectors = function(list) {
-    // Gets the angles of all enemies approaching the cell
-    var pos = {
-        x: 0,
-        y: 0
-    };
-    var check;
-    for (var i = 0; i < list.length; i++) {
-        check = list[i];
-        pos.x += check.position.x;
-        pos.y += check.position.y;
-    }
-
-    // Get avg
-    pos.x = pos.x / list.length;
-    pos.y = pos.y / list.length;
-
-    return pos;
-};
-
-QBot.prototype.checkPath = function(cell, check) {
-    // Checks if the cell is in the way
-
-    // Get angle of vector (cell -> path)
-    var v1 = Math.atan2(cell.position.x - this.mouse.x, cell.position.y - this.mouse.y);
-
-    // Get angle of vector (virus -> cell)
-    var v2 = this.getAngle(check, cell);
-    v2 = this.reverseAngle(v2);
-
-    if ((v1 <= (v2 + .25)) && (v1 >= (v2 - .25))) {
-        return true;
-    } else {
-        return false;
-    }
-};
-
-QBot.prototype.getBiggest = function(list) {
-    // Gets the biggest cell from the array
-    var biggest = list[0];
-    for (var i = 1; i < list.length; i++) {
-        var check = list[i];
-        if (check.mass > biggest.mass) {
-            biggest = check;
-        }
-    }
-
-    return biggest;
-};
 
 QBot.prototype.findNearbyVirus = function(cell, checkDist, list) {
     var r = cell.getSize() + 100; // Gets radius + virus radius
@@ -554,25 +269,6 @@ QBot.prototype.findNearbyVirus = function(cell, checkDist, list) {
         }
     }
     return false; // Returns a bool if no nearby viruses are found
-};
-
-QBot.prototype.checkPath = function(cell, check) {
-    // Get angle of path
-    var v1 = Math.atan2(cell.position.x - player.mouse.x, cell.position.y - player.mouse.y);
-
-    // Get angle of vector (cell -> virus)
-    var v2 = this.getAngle(cell, check);
-    var dist = this.getDist(cell, check);
-
-    var inRange = Math.atan((2 * cell.getSize()) / dist); // Opposite/adjacent
-    console.log(inRange);
-    if ((v1 <= (v2 + inRange)) && (v1 >= (v2 - inRange))) {
-        // Path collides
-        return true;
-    }
-
-    // No collide
-    return false;
 };
 
 QBot.prototype.getDist = function(cell, check) {
@@ -610,6 +306,59 @@ QBot.prototype.reverseAngle = function(angle) {
         angle += Math.PI;
     }
     return angle;
+};
+
+
+// ADDED BY ME
+
+// Assign Preys, Threats, Viruses & Foods
+QBot.prototype.updateLists = function(cell){
+    for (i in this.visibleNodes) {
+        var check = this.visibleNodes[i];
+
+        // Cannot target itself
+        if ((!check) || (cell.owner == check.owner)) {
+            continue;
+        }
+
+        var t = check.getType();
+        switch (t) {
+            case 0:
+                // Cannot target teammates
+                if (this.gameServer.gameMode.haveTeams) {
+                    if (check.owner.team == this.team) {
+                        continue;
+                    }
+                }
+
+                // Check for danger
+                if (cell.mass > (check.mass * 1.33)) {
+                    // Add to prey list
+                    this.prey.push(check);
+                    this.allEnemies.push(check);
+                } else if (check.mass > (cell.mass * 1.33)) {
+                    this.threats.push(check);
+                    this.allEnemies.push(check);
+                }
+                break;
+            case 1:
+                this.food.push(check);
+                break;
+            case 2: // Virus
+                if (!check.isMotherCell) {
+                    this.virus.push(check);
+                    this.allEnemies.push(check);
+                } // Only real viruses! No mother cells
+                break;
+            case 3: // Ejected mass
+                if (cell.mass > 20) {
+                    this.food.push(check);
+                }
+                break;
+            default:
+                break;
+        }
+    }
 };
 
 QBot.prototype.getDirectionFromLocation = function(cell, check){
@@ -666,6 +415,7 @@ QBot.prototype.getSpeedFromDistance = function(distance){
     }else{
         speed = 150;
     }
+    return speed;
 };
 
 QBot.prototype.getDistanceFromSpeed = function(speed){
@@ -677,30 +427,62 @@ QBot.prototype.getDistanceFromSpeed = function(speed){
     }else{
         distance = 1500;
     }
+    return distance;
 };
 
-QBot.prototype.convertLocationToStateVector = function(cell, check){
+QBot.prototype.getActionFromLocation = function(cell, check){
     var distance = this.getDist(cell,check);
     var speed = this.getSpeedFromDistance(distance);
     var direction = this.getDirectionFromLocation(cell, check);
-    var stateVector = {
-        direction: direction,
-        speed: speed
-    }
-    return stateVector;
+
+    return new Action(direction,speed);
 };
 
 
-QBot.prototype.convertVectorToLocation = function(cell, stateVector){
-    var direction = stateVector.direction;
-    var speed = stateVector.speed;
-
+QBot.prototype.getLocationFromAction = function(cell, action){
+    var direction = action.direction;
+    var speed = action.speed;
     var distance = this.getDistanceFromSpeed(speed);
-
-    var position = {
-        x: distance * Math.sin(direction),
-        y: distance * Math.sin(direction)
-    };
-    return position;
+    return new Position(cell.position.x + distance * Math.sin(direction), cell.position.y + distance * Math.cos(direction));
 };
 
+QBot.prototype.getMassDifference = function(cell, check){
+    var dMass = Math.round((cell.mass - check.mass)/10);
+    //console.log(dMass);
+    return dMass;
+};
+
+QBot.prototype.getRandomAction = function(){
+
+    var angle = 2*Math.PI*Math.random();
+    if ( angle > Math.PI){
+        angle -= 2*Math.PI;
+    }
+    var speed = 150*Math.random();
+    return new Action(angle,speed);
+};
+
+// Q-Learning
+QBot.prototype.qFunction = function(cell, state, action){
+    var reward = cell.mass - this.previousMass;
+};
+
+// Necessary Classes
+
+function Action(direction, speed){
+    this.direction = direction;
+    this.speed = speed;
+};
+
+function State(foodDirection, foodDistance, enemyDirection, enemyDistance, enemyMassDifference) {
+    this.foodDirection = foodDirection;
+    this.foodDistance = foodDistance;
+    this.enemyDirection = enemyDirection;
+    this.enemyDistance = enemyDistance;
+    this.enemyMassDifference = enemyMassDifference;
+};
+
+function Position(x, y){
+    this.x = x;
+    this.y = y;
+}
