@@ -4,6 +4,14 @@
 
 var PlayerTracker = require('../PlayerTracker');
 var gameServer = require('../GameServer');
+var Synaptic = require("synaptic");
+var Reinforce = require("Reinforcejs");
+var fs = require("fs");
+
+const maxSpeed = 150.0;
+const maxDistance = 1500.0;
+const maxAngle = Math.PI;
+const maxMassDifference = 20;
 
 function QBot() {
     PlayerTracker.apply(this, Array.prototype.slice.call(arguments));
@@ -34,6 +42,34 @@ function QBot() {
     this.action = new Action;
 
     this.previousMass = 10;
+
+    //this.qNetwork = Synaptic.Architect.Perceptron(7, 10, 1);
+
+    var env = {};
+    env.getNumStates = function() { return 2;};
+    env.getMaxNumActions = function() {return 24;};
+    var spec = {
+        update: 'qlearn',
+        gamma: 0.9,
+        epsilon: 0.2,
+        alpha: 0.01,
+        experience_add_every: 10,
+        experience_size: 5000,
+        learning_steps_per_iteration: 20,
+        tderror_clamp: 1.0,
+        num_hidden_units: 100
+    };
+    this.agent;
+    try {
+        var json = JSON.parse(fs.readFileSync("/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json","utf8"));
+        console.log("Reading From JSON");
+        this.agent = Reinforce.RL.DQNAgent.fromJSON(json);
+    } catch (e){
+        this.agent = new Reinforce.RL.DQNAgent(env,spec);
+    }
+    //this.agent = new RL.DQNAgent(env, spec);
+
+    this.shouldUpdateQNetwork = false;
 }
 
 module.exports = QBot;
@@ -90,6 +126,7 @@ QBot.prototype.getHighestCell = function() {
 
 // Overrides the update function from player tracker
 QBot.prototype.update = function() {
+
     // Remove nodes from visible nodes if possible
     for (var i = 0; i < this.nodeDestroyQueue.length; i++) {
         var index = this.visibleNodes.indexOf(this.nodeDestroyQueue[i]);
@@ -130,6 +167,16 @@ QBot.prototype.update = function() {
     //this.gameState = newState;
 
     // Action
+    if ( this.shouldUpdateQNetwork ){
+        var reward = cell.mass - this.previousMass;
+        console.log("Reward: "+reward);
+        this.agent.learn(reward);
+        this.shouldUpdateQNetwork = false;
+        var json = this.agent.toJSON();
+        //console.log(this.agent.net.W1);
+        fs.writeFile("/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json", JSON.stringify(json, null, 4));
+    }
+
     this.decide(cell);
 
     //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
@@ -179,19 +226,19 @@ QBot.prototype.clearLists = function() {
 };
 
 QBot.prototype.getGameState = function(cell) {
-    var state;
-
+    var gameState;
+    return 0;
     if ( this.food.length > 0 ){
         if ( this.allEnemies.length > 0){
-            state = 0;
+            gameState = 0;
         }else{
-            state = 1;
+            gameState = 1;
         }
     }else{
-        state = 2;
+        gameState = 2;
     }
 
-    return state;
+    return gameState;
 };
 
 QBot.prototype.decide = function(cell) {
@@ -202,15 +249,32 @@ QBot.prototype.decide = function(cell) {
 
     switch ( gameState ){
         case 0:
-            console.log("Q-Learning");
+            console.log("\nQ-Learning");
+            console.log("Mass: "+cell.mass);
             //var nearestThreat = this.findNearest(cell, this.threats);
             //var nearestPrey = this.findNearest(cell, this.prey);
-            var nearestVirus = this.findNearest(cell, this.virus);
+            //var nearestVirus = this.findNearest(cell, this.virus);
 
             //var nearestEnemy = this.findNearest(cell, this.allEnemies);
             var nearestFood = this.findNearest(cell, this.food);
 
+            //var enemyStateVector = this.getStateVectorFromLocation(cell, nearestEnemy);
+            var foodStateVector = this.getStateVectorFromLocation(cell, nearestFood);
+            //var enemyMassDifference = this.getMassDifference(cell, nearestEnemy);
 
+            //var currentState = State(foodStateVector.direction, foodStateVector.distance, enemyStateVector.direction, enemyStateVector.distance, enemyMassDifference);
+            //var qList = [foodStateVector.direction, foodStateVector.distance, enemyStateVector.direction, enemyStateVector.distance, enemyMassDifference];
+            var qList = [foodStateVector.direction/maxAngle, foodStateVector.distance/maxDistance];
+            console.log("State: \n\tFood Direction: "+foodStateVector.direction+"\n\tFood Distance: "+foodStateVector.distance);
+            var actionNumber = this.agent.act(qList);
+            this.previousMass = cell.mass;
+            var action = this.decodeAction(actionNumber);
+            var targetLocation = this.getLocationFromAction(cell, action);
+            this.targetPos = {
+                x: targetLocation.x,
+                y: targetLocation.y
+            };
+            this.shouldUpdateQNetwork = true;
             break;
         case 1:
             console.log("Nearest Food");
@@ -430,12 +494,11 @@ QBot.prototype.getDistanceFromSpeed = function(speed){
     return distance;
 };
 
-QBot.prototype.getActionFromLocation = function(cell, check){
+QBot.prototype.getStateVectorFromLocation = function(cell, check){
     var distance = this.getDist(cell,check);
-    var speed = this.getSpeedFromDistance(distance);
     var direction = this.getDirectionFromLocation(cell, check);
 
-    return new Action(direction,speed);
+    return new StateVector(direction,distance);
 };
 
 
@@ -448,6 +511,10 @@ QBot.prototype.getLocationFromAction = function(cell, action){
 
 QBot.prototype.getMassDifference = function(cell, check){
     var dMass = Math.round((cell.mass - check.mass)/10);
+    if (dMass > maxMassDifference)
+        dMass = maxMassDifference
+    else if (dMass < -maxMassDifference)
+        dMass = -maxMassDifference;
     //console.log(dMass);
     return dMass;
 };
@@ -462,8 +529,34 @@ QBot.prototype.getRandomAction = function(){
     return new Action(angle,speed);
 };
 
+// Encode - Decode DQN Values
+
+QBot.prototype.decodeAction = function(q){
+    var speed;
+    var direction;
+    switch (q%3){
+        case 0:
+            speed = 30;
+            break;
+        case 1:
+            speed = 90;
+            break;
+        case 2:
+            speed = 150;
+            break;
+        default :
+            break;
+    }
+    direction = ((Math.PI)/4)*(q%8);
+    if ( direction > Math.PI){
+        direction -= 2*Math.PI;
+    }
+    console.log("Action: \n\tDirection: "+direction+"\n\tSpeed: "+speed);
+    return new Action(direction, speed);
+};
+
 // Q-Learning
-QBot.prototype.qFunction = function(cell, state, action){
+QBot.prototype.qValue = function(cell, state, action){
     var reward = cell.mass - this.previousMass;
 };
 
@@ -472,6 +565,11 @@ QBot.prototype.qFunction = function(cell, state, action){
 function Action(direction, speed){
     this.direction = direction;
     this.speed = speed;
+};
+
+function StateVector(direction, distance){
+    this.direction = direction;
+    this.distance = distance;
 };
 
 function State(foodDirection, foodDistance, enemyDirection, enemyDistance, enemyMassDifference) {
