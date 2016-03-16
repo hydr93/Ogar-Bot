@@ -4,8 +4,11 @@
 
 var PlayerTracker = require('../PlayerTracker');
 var gameServer = require('../GameServer');
+var CommandList = require("../modules/CommandList");
+
 var Synaptic = require("synaptic");
 var Reinforce = require("Reinforcejs");
+
 var fs = require("fs");
 
 const maxSpeed = 150.0;
@@ -62,8 +65,9 @@ function QBot() {
     this.agent;
     try {
         var json = JSON.parse(fs.readFileSync("/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json","utf8"));
-        console.log("Reading From JSON");
-        this.agent = Reinforce.RL.DQNAgent.fromJSON(json);
+        //console.log("Reading From JSON");
+        this.agent = new Reinforce.RL.DQNAgent(env, spec);
+        this.agent.fromJSON(json);
     } catch (e){
         this.agent = new Reinforce.RL.DQNAgent(env,spec);
     }
@@ -139,10 +143,12 @@ QBot.prototype.update = function() {
     if (this.cells.length <= 0) {
         this.gameServer.gameMode.onPlayerSpawn(this.gameServer, this);
         if (this.cells.length == 0) {
+
             // If the bot cannot spawn any cells, then disconnect it
             this.socket.close();
             return;
         }
+
     }
 
     // Calculate nodes
@@ -153,10 +159,9 @@ QBot.prototype.update = function() {
     var r = cell.getSize();
     this.clearLists();
 
+
     // Assign Preys, Threats, Viruses & Foods
     this.updateLists(cell);
-
-
 
     //// Get gamestate
     //var newState = this.getState(cell);
@@ -169,12 +174,16 @@ QBot.prototype.update = function() {
     // Action
     if ( this.shouldUpdateQNetwork ){
         var reward = cell.mass - this.previousMass;
-        console.log("Reward: "+reward);
+        //console.log("Reward: "+reward);
         this.agent.learn(reward);
         this.shouldUpdateQNetwork = false;
         var json = this.agent.toJSON();
-        //console.log(this.agent.net.W1);
         fs.writeFile("/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json", JSON.stringify(json, null, 4));
+    }
+
+    // Learn till the mass is 100
+    if ( cell.mass > 100 ){
+        CommandList.list.killall(this.gameServer,0);
     }
 
     this.decide(cell);
@@ -249,8 +258,8 @@ QBot.prototype.decide = function(cell) {
 
     switch ( gameState ){
         case 0:
-            console.log("\nQ-Learning");
-            console.log("Mass: "+cell.mass);
+            //console.log("\nQ-Learning");
+            //console.log("Mass: "+cell.mass);
             //var nearestThreat = this.findNearest(cell, this.threats);
             //var nearestPrey = this.findNearest(cell, this.prey);
             //var nearestVirus = this.findNearest(cell, this.virus);
@@ -265,7 +274,11 @@ QBot.prototype.decide = function(cell) {
             //var currentState = State(foodStateVector.direction, foodStateVector.distance, enemyStateVector.direction, enemyStateVector.distance, enemyMassDifference);
             //var qList = [foodStateVector.direction, foodStateVector.distance, enemyStateVector.direction, enemyStateVector.distance, enemyMassDifference];
             var qList = [foodStateVector.direction/maxAngle, foodStateVector.distance/maxDistance];
-            console.log("State: \n\tFood Direction: "+foodStateVector.direction+"\n\tFood Distance: "+foodStateVector.distance);
+
+            //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
+            //console.log("Food Position\nX: "+nearestFood.position.x+"\nY: "+nearestFood.position.y);
+            //
+            //console.log("State: \n\tFood Direction: "+foodStateVector.direction+"\n\tFood Distance: "+foodStateVector.distance);
             var actionNumber = this.agent.act(qList);
             this.previousMass = cell.mass;
             var action = this.decodeAction(actionNumber);
@@ -277,7 +290,7 @@ QBot.prototype.decide = function(cell) {
             this.shouldUpdateQNetwork = true;
             break;
         case 1:
-            console.log("Nearest Food");
+            //console.log("Nearest Food");
             var nearestFood = this.findNearest(cell, this.food);
 
             // Set bot's mouse coords to this location
@@ -290,7 +303,7 @@ QBot.prototype.decide = function(cell) {
             // Random??
         default:
             // Random right now
-            console.log("Random");
+            //console.log("Random");
             var action = this.getRandomAction();
             var targetLocation = this.getLocationFromAction(cell, action)
             this.targetPos = {
@@ -324,10 +337,9 @@ QBot.prototype.findNearest = function(cell, list) {
 
 
 QBot.prototype.findNearbyVirus = function(cell, checkDist, list) {
-    var r = cell.getSize() + 100; // Gets radius + virus radius
     for (var i = 0; i < list.length; i++) {
         var check = list[i];
-        var dist = this.getDist(cell, check) - r;
+        var dist = this.getDist(cell, check);
         if (checkDist > dist) {
             return check;
         }
@@ -336,25 +348,15 @@ QBot.prototype.findNearbyVirus = function(cell, checkDist, list) {
 };
 
 QBot.prototype.getDist = function(cell, check) {
-    // Fastest distance - I have a crappy computer to test with :(
-    var xd = (check.position.x - cell.position.x);
-    xd = xd < 0 ? xd * -1 : xd; // Math.abs is slow
 
-    var yd = (check.position.y - cell.position.y);
-    yd = yd < 0 ? yd * -1 : yd; // Math.abs is slow
+    var dx = Math.abs(check.position.x - cell.position.x);
+    var dy = Math.abs(check.position.y - cell.position.y);
 
-    return (xd + yd);
-};
-
-QBot.prototype.getAccDist = function(cell, check) {
-    // Accurate Distance
-    var xs = check.position.x - cell.position.x;
-    xs = xs * xs;
-
-    var ys = check.position.y - cell.position.y;
-    ys = ys * ys;
-
-    return Math.sqrt(xs + ys);
+    var distance = Math.sqrt(dx*dx + dy*dy) - ((cell.getSize()+check.getSize())/2);
+    if (distance < 0){
+        distance = 0;
+    }
+    return distance;
 };
 
 QBot.prototype.getAngle = function(c1, c2) {
@@ -427,7 +429,7 @@ QBot.prototype.updateLists = function(cell){
 
 QBot.prototype.getDirectionFromLocation = function(cell, check){
 
-    var deltaY = cell.position.y - check.position.y;
+    var deltaY = check.position.y - check.position.y;
     var deltaX = cell.position.x - check.position.x;
 
     var angle = Math.atan2(deltaY, deltaX);
@@ -551,7 +553,7 @@ QBot.prototype.decodeAction = function(q){
     if ( direction > Math.PI){
         direction -= 2*Math.PI;
     }
-    console.log("Action: \n\tDirection: "+direction+"\n\tSpeed: "+speed);
+    //console.log("Action: \n\tDirection: "+direction+"\n\tSpeed: "+speed);
     return new Action(direction, speed);
 };
 
