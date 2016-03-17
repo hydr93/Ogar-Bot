@@ -55,12 +55,12 @@ function QBot() {
         update: 'qlearn',
         gamma: 0.9,
         epsilon: 0.2,
-        alpha: 0.01,
+        alpha: 0.1,
         experience_add_every: 10,
         experience_size: 5000,
         learning_steps_per_iteration: 20,
         tderror_clamp: 1.0,
-        num_hidden_units: 100
+        num_hidden_units: 50
     };
     this.agent;
     try {
@@ -154,6 +154,9 @@ QBot.prototype.update = function() {
     // Calculate nodes
     this.visibleNodes = this.calcViewBox();
 
+    var dy = this.viewBox.bottomY - this.viewBox.topY;
+    var dx = this.viewBox.rightX - this.viewBox.leftX;
+
     // Get Lowest cell of the bot
     var cell = this.getLowestCell();
     var r = cell.getSize();
@@ -204,28 +207,6 @@ QBot.prototype.update = function() {
 
 // Custom
 
-QBot.prototype.updatePrey = function(cell) {
-    // Recalculate prey
-    this.prey = [];
-    for (var i in this.visibleNodes) {
-        var check = this.visibleNodes[i];
-        if (check.cellType == 0 && cell.mass > (check.mass * 1.33) && check.mass > cell.mass / 5) {
-            // Prey
-            this.prey.push(check);
-        }
-    }
-};
-
-QBot.prototype.shouldUpdateNodes = function() {
-    if ((this.tickViewBox <= 0) && (this.gameServer.run)) {
-        this.visibleNodes = this.calcViewBox();
-        this.tickViewBox = 6;
-    } else {
-        this.tickViewBox--;
-        return;
-    }
-};
-
 QBot.prototype.clearLists = function() {
     this.allEnemies = [];
     this.threats = [];
@@ -236,7 +217,13 @@ QBot.prototype.clearLists = function() {
 
 QBot.prototype.getGameState = function(cell) {
     var gameState;
-    return 0;
+    if ( this.food.length > 0){
+        return 0;
+    }else{
+        return 2;
+    }
+
+
     if ( this.food.length > 0 ){
         if ( this.allEnemies.length > 0){
             gameState = 0;
@@ -258,8 +245,8 @@ QBot.prototype.decide = function(cell) {
 
     switch ( gameState ){
         case 0:
-            //console.log("\nQ-Learning");
-            //console.log("Mass: "+cell.mass);
+            //console.log("Q-Learning");
+            // console.log("Mass: "+cell.mass);
             //var nearestThreat = this.findNearest(cell, this.threats);
             //var nearestPrey = this.findNearest(cell, this.prey);
             //var nearestVirus = this.findNearest(cell, this.virus);
@@ -278,7 +265,7 @@ QBot.prototype.decide = function(cell) {
             //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
             //console.log("Food Position\nX: "+nearestFood.position.x+"\nY: "+nearestFood.position.y);
             //
-            //console.log("State: \n\tFood Direction: "+foodStateVector.direction+"\n\tFood Distance: "+foodStateVector.distance);
+            // console.log("State: \n\tFood Direction: "+foodStateVector.direction+"\n\tFood Distance: "+foodStateVector.distance);
             var actionNumber = this.agent.act(qList);
             this.previousMass = cell.mass;
             var action = this.decodeAction(actionNumber);
@@ -292,7 +279,6 @@ QBot.prototype.decide = function(cell) {
         case 1:
             //console.log("Nearest Food");
             var nearestFood = this.findNearest(cell, this.food);
-
             // Set bot's mouse coords to this location
             this.targetPos = {
                 x: nearestFood.position.x,
@@ -429,12 +415,14 @@ QBot.prototype.updateLists = function(cell){
 
 QBot.prototype.getDirectionFromLocation = function(cell, check){
 
-    var deltaY = check.position.y - check.position.y;
-    var deltaX = cell.position.x - check.position.x;
+    var dy = check.position.y - cell.position.y;
+    var dx = check.position.x - cell.position.x;
 
-    var angle = Math.atan2(deltaY, deltaX);
+    var angle = Math.atan2(dx, dy);
 
     //console.log("Delta X: "+deltaX+"\nDelta Y: "+deltaY+"\nAngle: "+(angle*180/Math.PI));
+
+    //console.log("\tAngle: "+(angle*180/Math.PI));
 
     var direction;
     if ( angle < 0 )
@@ -443,28 +431,28 @@ QBot.prototype.getDirectionFromLocation = function(cell, check){
 
     if ( angle < Math.PI/8 || angle >= (Math.PI*15)/8 ){
         direction = 0;
-        //console.log("E");
+        //console.log("S");
     }else if ( angle >= (Math.PI)/8 && angle < (Math.PI*3)/8 ){
         direction = (Math.PI*2)/8;
-        //console.log("NE");
+        //console.log("SE");
     }else if ( angle >= (Math.PI*3)/8 && angle < (Math.PI*5)/8 ){
         direction = (Math.PI*4)/8;
-        //console.log("N");
+        //console.log("E");
     }else if ( angle >= (Math.PI*5)/8 && angle < (Math.PI*7)/8 ){
         direction = (Math.PI*6)/8;
-        //console.log("NW");
+        //console.log("NE");
     }else if ( angle >= (Math.PI*7)/8 && angle < (Math.PI*9)/8 ){
         direction = (Math.PI*8)/8;
-        //console.log("W");
+        //console.log("N");
     }else if ( angle >= (Math.PI*9)/8 && angle < (Math.PI*11)/8 ){
         direction = (Math.PI*10)/8;
-        //console.log("SW");
+        //console.log("NW");
     }else if ( angle >= (Math.PI*11)/8 && angle < (Math.PI*13)/8 ){
         direction = (Math.PI*12)/8;
-        //console.log("S");
+        //console.log("W");
     }else if ( angle >= (Math.PI*13)/8 && angle < (Math.PI*15)/8 ){
         direction = (Math.PI*14)/8;
-        //console.log("SE");
+        //console.log("SW");
     }
     if ( direction > Math.PI){
         direction -= 2*Math.PI;
@@ -499,7 +487,6 @@ QBot.prototype.getDistanceFromSpeed = function(speed){
 QBot.prototype.getStateVectorFromLocation = function(cell, check){
     var distance = this.getDist(cell,check);
     var direction = this.getDirectionFromLocation(cell, check);
-
     return new StateVector(direction,distance);
 };
 
@@ -553,7 +540,7 @@ QBot.prototype.decodeAction = function(q){
     if ( direction > Math.PI){
         direction -= 2*Math.PI;
     }
-    //console.log("Action: \n\tDirection: "+direction+"\n\tSpeed: "+speed);
+    // console.log("Action: \n\tDirection: "+direction+"\n\tSpeed: "+speed);
     return new Action(direction, speed);
 };
 
