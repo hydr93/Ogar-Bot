@@ -191,8 +191,8 @@ QBot.prototype.update = function() {
 
     this.decide(cell);
 
-    //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
-    //console.log("Destination Position\nX: "+this.targetPos.x+"\nY: "+this.targetPos.y);
+    console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
+    console.log("Destination Position\nX: "+this.targetPos.x+"\nY: "+this.targetPos.y);
 
     // Now update mouse
     this.mouse = {
@@ -246,7 +246,7 @@ QBot.prototype.decide = function(cell) {
     switch ( gameState ){
         case 0:
             //console.log("Q-Learning");
-            // console.log("Mass: "+cell.mass);
+             console.log("Mass: "+cell.mass);
             //var nearestThreat = this.findNearest(cell, this.threats);
             //var nearestPrey = this.findNearest(cell, this.prey);
             //var nearestVirus = this.findNearest(cell, this.virus);

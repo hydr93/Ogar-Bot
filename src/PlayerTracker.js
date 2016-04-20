@@ -279,6 +279,7 @@ PlayerTracker.prototype.updateCenter = function() { // Get center of cells
         Y += this.cells[i].position.y;
     }
 
+
     this.centerPos.x = X / len;
     this.centerPos.y = Y / len;
 };
@@ -331,7 +332,13 @@ PlayerTracker.prototype.moveInFreeRoam = function() {
     // To mimic agar.io, get distance from center to mouse and apply a part of the distance
 
     var dist = this.gameServer.getDist(this.mouse.x, this.mouse.y, this.centerPos.x, this.centerPos.y);
+
     var angle = this.getAngle(this.mouse.x, this.mouse.y, this.centerPos.x, this.centerPos.y);
+
+    console.log(this.mouse.x + "\t" + this.mouse.y + "\t" + this.centerPos.x + "\t" + this.centerPos.y);
+
+    console.log(angle);
+
     var speed = Math.min(dist / 10, 190); // Not to break laws of universe by going faster than light speed
 
     this.centerPos.x += speed * Math.sin(angle);
