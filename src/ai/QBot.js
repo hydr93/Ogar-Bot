@@ -12,7 +12,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Dropbox/ITU/Thesis/Ogar/reports/report.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report2.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -59,8 +59,7 @@ function QBot() {
 
     this.previousMass = 10;
 
-    //this.qNetwork = Synaptic.Architect.Perceptron(7, 10, 1);
-
+    // Initialize DQN Environment
     var env = {};
     env.getNumStates = function() { return 2;};
     env.getMaxNumActions = function() {return 24;};
@@ -86,10 +85,11 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 1\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    fs.appendFile(REPORT_FILE, "Test 1: No Enemy, No Virus\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
     var date = new Date();
     fs.appendFile(REPORT_FILE, "\nStates:\n\t1 Food\n\t\tDirection\n\t\tDistance\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
-    fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
+    fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
+    fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
     this.shouldUpdateQNetwork = false;
 }
@@ -236,6 +236,11 @@ QBot.prototype.getGameState = function(cell) {
     if ( this.food.length > 0){ // If there are any foods :)
         return 0;
     }else{ // If there aren't any food
+        CommandList.list.killall(this.gameServer,0);
+        var date = new Date();
+        // Report the important information to REPORT_FILE
+        fs.appendFile(REPORT_FILE, "\tDeath: "+date+" because of NO FOOD, SIZE:"+cell.mass+"\n");
+
         return 2;
     }
 
