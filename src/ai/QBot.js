@@ -10,11 +10,27 @@ var Synaptic = require("synaptic");
 var Reinforce = require("Reinforcejs");
 
 var fs = require("fs");
+const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const maxSpeed = 150.0;
-const maxDistance = 1500.0;
-const maxAngle = Math.PI;
-const maxMassDifference = 20;
+const REPORT_FILE = "/Users/hydr93/Dropbox/ITU/Thesis/Ogar/reports/report.txt";
+
+// Number of tries till the cell gets to the TRIAL_RESET_MASS
+var trial = 1;
+
+// Server will be restarted when the cell's mass is equal to this.
+const TRIAL_RESET_MASS = 100;
+
+// Maximum Speed a cell can have
+const MAX_SPEED = 150.0;
+
+// Maximum Distance between two cells
+const MAX_DISTANCE = 1500.0;
+
+// Maximum Angle :)
+const MAX_ANGLE = Math.PI;
+
+// Maximum Mass Difference between two cells.
+const MAX_MASS_DIFFERENCE = 20;
 
 function QBot() {
     PlayerTracker.apply(this, Array.prototype.slice.call(arguments));
@@ -41,9 +57,6 @@ function QBot() {
         y: 0
     };
 
-    this.state = new State;
-    this.action = new Action;
-
     this.previousMass = 10;
 
     //this.qNetwork = Synaptic.Architect.Perceptron(7, 10, 1);
@@ -60,18 +73,23 @@ function QBot() {
         experience_size: 5000,
         learning_steps_per_iteration: 20,
         tderror_clamp: 1.0,
-        num_hidden_units: 50
+        num_hidden_units: 6
     };
     this.agent;
     try {
-        var json = JSON.parse(fs.readFileSync("/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json","utf8"));
+        var json = JSON.parse(fs.readFileSync(JSON_FILE,"utf8"));
         //console.log("Reading From JSON");
         this.agent = new Reinforce.RL.DQNAgent(env, spec);
         this.agent.fromJSON(json);
     } catch (e){
         this.agent = new Reinforce.RL.DQNAgent(env,spec);
     }
-    //this.agent = new RL.DQNAgent(env, spec);
+
+    // Report the important information to REPORT_FILE
+    fs.appendFile(REPORT_FILE, "Test 1\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    var date = new Date();
+    fs.appendFile(REPORT_FILE, "\nStates:\n\t1 Food\n\t\tDirection\n\t\tDistance\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
+    fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
     this.shouldUpdateQNetwork = false;
 }
@@ -148,7 +166,10 @@ QBot.prototype.update = function() {
             this.socket.close();
             return;
         }
-
+        var date = new Date();
+        console.log(date);
+        // Report the important information to REPORT_FILE
+        fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
     }
 
     // Calculate nodes
@@ -166,14 +187,6 @@ QBot.prototype.update = function() {
     // Assign Preys, Threats, Viruses & Foods
     this.updateLists(cell);
 
-    //// Get gamestate
-    //var newState = this.getState(cell);
-    //if ((newState != this.gameState) && (newState != 4)) {
-    //    // Clear target
-    //    this.target = null;
-    //}
-    //this.gameState = newState;
-
     // Action
     if ( this.shouldUpdateQNetwork ){
         var reward = cell.mass - this.previousMass;
@@ -181,18 +194,21 @@ QBot.prototype.update = function() {
         this.agent.learn(reward);
         this.shouldUpdateQNetwork = false;
         var json = this.agent.toJSON();
-        fs.writeFile("/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json", JSON.stringify(json, null, 4));
+        fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
     }
 
-    // Learn till the mass is 100
-    if ( cell.mass > 100 ){
+    // Learn till the mass is equal to Reset Mass
+    if ( cell.mass > TRIAL_RESET_MASS){
         CommandList.list.killall(this.gameServer,0);
+        var date = new Date();
+        // Report the important information to REPORT_FILE
+        fs.appendFile(REPORT_FILE, "\tDeath: "+date+"\n");
     }
 
     this.decide(cell);
 
-    console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
-    console.log("Destination Position\nX: "+this.targetPos.x+"\nY: "+this.targetPos.y);
+    //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
+    //console.log("Destination Position\nX: "+this.targetPos.x+"\nY: "+this.targetPos.y);
 
     // Now update mouse
     this.mouse = {
@@ -217,9 +233,9 @@ QBot.prototype.clearLists = function() {
 
 QBot.prototype.getGameState = function(cell) {
     var gameState;
-    if ( this.food.length > 0){
+    if ( this.food.length > 0){ // If there are any foods :)
         return 0;
-    }else{
+    }else{ // If there aren't any food
         return 2;
     }
 
@@ -237,6 +253,7 @@ QBot.prototype.getGameState = function(cell) {
     return gameState;
 };
 
+//Decides the action of player
 QBot.prototype.decide = function(cell) {
     var foodDirection,foodDistance,enemyDirection,enemyDistance,enemyMassDifference;
     var actionDirection, actionSpeed;
@@ -246,7 +263,7 @@ QBot.prototype.decide = function(cell) {
     switch ( gameState ){
         case 0:
             //console.log("Q-Learning");
-             console.log("Mass: "+cell.mass);
+            // console.log("Mass: "+cell.mass);
             //var nearestThreat = this.findNearest(cell, this.threats);
             //var nearestPrey = this.findNearest(cell, this.prey);
             //var nearestVirus = this.findNearest(cell, this.virus);
@@ -260,7 +277,7 @@ QBot.prototype.decide = function(cell) {
 
             //var currentState = State(foodStateVector.direction, foodStateVector.distance, enemyStateVector.direction, enemyStateVector.distance, enemyMassDifference);
             //var qList = [foodStateVector.direction, foodStateVector.distance, enemyStateVector.direction, enemyStateVector.distance, enemyMassDifference];
-            var qList = [foodStateVector.direction/maxAngle, foodStateVector.distance/maxDistance];
+            var qList = [foodStateVector.direction/MAX_ANGLE, foodStateVector.distance/MAX_DISTANCE];
 
             //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
             //console.log("Food Position\nX: "+nearestFood.position.x+"\nY: "+nearestFood.position.y);
@@ -321,7 +338,7 @@ QBot.prototype.findNearest = function(cell, list) {
     return shortest;
 };
 
-
+// Finds the closest Virus
 QBot.prototype.findNearbyVirus = function(cell, checkDist, list) {
     for (var i = 0; i < list.length; i++) {
         var check = list[i];
@@ -333,6 +350,7 @@ QBot.prototype.findNearbyVirus = function(cell, checkDist, list) {
     return false; // Returns a bool if no nearby viruses are found
 };
 
+// Returns distance between two cells
 QBot.prototype.getDist = function(cell, check) {
 
     var dx = Math.abs(check.position.x - cell.position.x);
@@ -413,6 +431,7 @@ QBot.prototype.updateLists = function(cell){
     }
 };
 
+// Returns Direction from Location
 QBot.prototype.getDirectionFromLocation = function(cell, check){
 
     var dy = check.position.y - cell.position.y;
@@ -460,6 +479,7 @@ QBot.prototype.getDirectionFromLocation = function(cell, check){
     return direction;
 };
 
+// Transforms Distance to Speed
 QBot.prototype.getSpeedFromDistance = function(distance){
     var speed;
     if ( distance < 600 ){
@@ -472,6 +492,7 @@ QBot.prototype.getSpeedFromDistance = function(distance){
     return speed;
 };
 
+// Transforms Speed to Distance
 QBot.prototype.getDistanceFromSpeed = function(speed){
     var distance;
     if (speed < 60){
@@ -484,13 +505,14 @@ QBot.prototype.getDistanceFromSpeed = function(speed){
     return distance;
 };
 
+// Returns StateVector type class from the location of two cells
 QBot.prototype.getStateVectorFromLocation = function(cell, check){
     var distance = this.getDist(cell,check);
     var direction = this.getDirectionFromLocation(cell, check);
     return new StateVector(direction,distance);
 };
 
-
+// Returns Position type class of an Action type class
 QBot.prototype.getLocationFromAction = function(cell, action){
     var direction = action.direction;
     var speed = action.speed;
@@ -498,16 +520,18 @@ QBot.prototype.getLocationFromAction = function(cell, action){
     return new Position(cell.position.x + distance * Math.sin(direction), cell.position.y + distance * Math.cos(direction));
 };
 
+// Returns the mass difference of two cells
 QBot.prototype.getMassDifference = function(cell, check){
     var dMass = Math.round((cell.mass - check.mass)/10);
-    if (dMass > maxMassDifference)
-        dMass = maxMassDifference
-    else if (dMass < -maxMassDifference)
-        dMass = -maxMassDifference;
+    if (dMass > MAX_MASS_DIFFERENCE)
+        dMass = MAX_MASS_DIFFERENCE
+    else if (dMass < -MAX_MASS_DIFFERENCE)
+        dMass = -MAX_MASS_DIFFERENCE;
     //console.log(dMass);
     return dMass;
 };
 
+// Returns a random Action
 QBot.prototype.getRandomAction = function(){
 
     var angle = 2*Math.PI*Math.random();
@@ -519,7 +543,6 @@ QBot.prototype.getRandomAction = function(){
 };
 
 // Encode - Decode DQN Values
-
 QBot.prototype.decodeAction = function(q){
     var speed;
     var direction;
@@ -544,31 +567,29 @@ QBot.prototype.decodeAction = function(q){
     return new Action(direction, speed);
 };
 
-// Q-Learning
-QBot.prototype.qValue = function(cell, state, action){
-    var reward = cell.mass - this.previousMass;
-};
-
 // Necessary Classes
 
+// It shows the action of a cell with direction and speed.
 function Action(direction, speed){
     this.direction = direction;
     this.speed = speed;
 };
 
+// It shows the state of a cell according to other cell with direction and distance
 function StateVector(direction, distance){
     this.direction = direction;
     this.distance = distance;
 };
 
-function State(foodDirection, foodDistance, enemyDirection, enemyDistance, enemyMassDifference) {
-    this.foodDirection = foodDirection;
-    this.foodDistance = foodDistance;
-    this.enemyDirection = enemyDirection;
-    this.enemyDistance = enemyDistance;
-    this.enemyMassDifference = enemyMassDifference;
-};
+//function State(foodDirection, foodDistance, enemyDirection, enemyDistance, enemyMassDifference) {
+//    this.foodDirection = foodDirection;
+//    this.foodDistance = foodDistance;
+//    this.enemyDirection = enemyDirection;
+//    this.enemyDistance = enemyDistance;
+//    this.enemyMassDifference = enemyMassDifference;
+//};
 
+// A position class with X and Y
 function Position(x, y){
     this.x = x;
     this.y = y;
