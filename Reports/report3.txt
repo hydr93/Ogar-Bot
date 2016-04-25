@@ -1,4 +1,4 @@
-Test 2: No Enemy, No Virus
+Test 3: No Enemy, No Virus
 
 Number of States: 2
 Number of Actions: 24

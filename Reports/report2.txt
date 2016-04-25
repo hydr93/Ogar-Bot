@@ -4,8 +4,6 @@ Number of States: 2
 Number of Actions: 24
 Number of Hidden Units: 2
 
-Trial Reset Mass: 100
-
 States:
 	1 Food
 		Direction
@@ -14,6 +12,8 @@ Actions:
 	Walk
 		8 Directions
 		3 Speed
+
+Trial Reset Mass: 100
 
 Trial No: 1
 	Birth: Mon Apr 25 2016 00:07:39 GMT+0300 (EEST)
