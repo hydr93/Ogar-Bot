@@ -1,0 +1,143 @@
+
+States:
+	1 Food
+		Direction
+		Distance
+Actions:
+	Walk
+		8 Directions
+		3 Speed
+Test 5: No Enemy, No Virus
+
+Number of States: 2
+Number of Actions: 24
+Number of Hidden Units: 50
+
+Trial Reset Mass: 100
+
+Trial No: 1
+	Birth: Mon Apr 25 2016 15:37:35 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:47:35 GMT+0300 (EEST)
+
+Trial No: 2
+	Birth: Mon Apr 25 2016 15:47:35 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:49:18 GMT+0300 (EEST) because of NO FOOD, SIZE:50.554522055469356
+
+Trial No: 3
+	Birth: Mon Apr 25 2016 15:49:18 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:49:27 GMT+0300 (EEST) because of NO FOOD, SIZE:15.74971198109486
+
+Trial No: 4
+	Birth: Mon Apr 25 2016 15:49:28 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:53:04 GMT+0300 (EEST)
+
+Trial No: 5
+	Birth: Mon Apr 25 2016 15:53:04 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:53:28 GMT+0300 (EEST) because of NO FOOD, SIZE:21.228249586441486
+
+Trial No: 6
+	Birth: Mon Apr 25 2016 15:53:28 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:53:28 GMT+0300 (EEST) because of NO FOOD, SIZE:10.986907797140717
+
+Trial No: 7
+	Birth: Mon Apr 25 2016 15:53:28 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:55:18 GMT+0300 (EEST) because of NO FOOD, SIZE:81.56211597972748
+
+Trial No: 8
+	Birth: Mon Apr 25 2016 15:55:18 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:58:02 GMT+0300 (EEST)
+
+Trial No: 9
+	Birth: Mon Apr 25 2016 15:58:02 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 15:58:48 GMT+0300 (EEST) because of NO FOOD, SIZE:35.77646660811691
+
+Trial No: 10
+	Birth: Mon Apr 25 2016 15:58:48 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:04:10 GMT+0300 (EEST) because of NO FOOD, SIZE:89.30102997973769
+
+Trial No: 11
+	Birth: Mon Apr 25 2016 16:04:10 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:05:05 GMT+0300 (EEST) because of NO FOOD, SIZE:16.39718765929502
+
+Trial No: 12
+	Birth: Mon Apr 25 2016 16:05:05 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:05:07 GMT+0300 (EEST) because of NO FOOD, SIZE:11.962262692003826
+
+Trial No: 13
+	Birth: Mon Apr 25 2016 16:05:07 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:06:21 GMT+0300 (EEST) because of NO FOOD, SIZE:16.704539965273714
+
+Trial No: 14
+	Birth: Mon Apr 25 2016 16:06:21 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:07:57 GMT+0300 (EEST)
+
+Trial No: 15
+	Birth: Mon Apr 25 2016 16:07:57 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:10:49 GMT+0300 (EEST)
+
+Trial No: 16
+	Birth: Mon Apr 25 2016 16:10:49 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:11:57 GMT+0300 (EEST)
+
+Trial No: 17
+	Birth: Mon Apr 25 2016 16:11:57 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:14:32 GMT+0300 (EEST) because of NO FOOD, SIZE:65.0180387927785
+
+Trial No: 18
+	Birth: Mon Apr 25 2016 16:14:32 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:15:46 GMT+0300 (EEST) because of NO FOOD, SIZE:49.8540074510007
+
+Trial No: 19
+	Birth: Mon Apr 25 2016 16:15:46 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:17:22 GMT+0300 (EEST)
+
+Trial No: 20
+	Birth: Mon Apr 25 2016 16:17:22 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:18:39 GMT+0300 (EEST) because of NO FOOD, SIZE:31.437242727740127
+
+Trial No: 21
+	Birth: Mon Apr 25 2016 16:18:39 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:21:47 GMT+0300 (EEST) because of NO FOOD, SIZE:78.53645101766553
+
+Trial No: 22
+	Birth: Mon Apr 25 2016 16:21:47 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:53:13 GMT+0300 (EEST) because of NO FOOD, SIZE:9.92810266092926
+
+Trial No: 23
+	Birth: Mon Apr 25 2016 16:53:13 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:55:43 GMT+0300 (EEST)
+
+Trial No: 24
+	Birth: Mon Apr 25 2016 16:55:43 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:58:27 GMT+0300 (EEST) because of NO FOOD, SIZE:57.49480976624237
+
+Trial No: 25
+	Birth: Mon Apr 25 2016 16:58:27 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 16:59:31 GMT+0300 (EEST)
+
+Trial No: 26
+	Birth: Mon Apr 25 2016 16:59:31 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 17:01:01 GMT+0300 (EEST)
+
+Trial No: 27
+	Birth: Mon Apr 25 2016 17:01:01 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 17:02:54 GMT+0300 (EEST)
+
+Trial No: 28
+	Birth: Mon Apr 25 2016 17:02:54 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 17:04:16 GMT+0300 (EEST)
+
+Trial No: 29
+	Birth: Mon Apr 25 2016 17:04:16 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 17:04:41 GMT+0300 (EEST) because of NO FOOD, SIZE:19.320192956471438
+
+Trial No: 30
+	Birth: Mon Apr 25 2016 17:04:41 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 17:10:22 GMT+0300 (EEST) because of NO FOOD, SIZE:74.50711941023921
+
+Trial No: 31
+	Birth: Mon Apr 25 2016 17:10:22 GMT+0300 (EEST)
+	Death: Mon Apr 25 2016 17:12:04 GMT+0300 (EEST) because of NO FOOD, SIZE:21.77326823613847
+
+Trial No: 32
+	Birth: Mon Apr 25 2016 17:12:04 GMT+0300 (EEST)
