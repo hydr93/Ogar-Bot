@@ -12,7 +12,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report6.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report7.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -61,7 +61,7 @@ function QBot() {
 
     // Initialize DQN Environment
     var env = {};
-    env.getNumStates = function() { return 3;};
+    env.getNumStates = function() { return 6;};
     env.getMaxNumActions = function() {return 24;};
     var spec = {
         update: 'qlearn',
@@ -72,7 +72,7 @@ function QBot() {
         experience_size: 5000,
         learning_steps_per_iteration: 20,
         tderror_clamp: 1.0,
-        num_hidden_units: 10
+        num_hidden_units: 15
     };
     this.agent;
     try {
@@ -85,10 +85,10 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    //fs.appendFile(REPORT_FILE, "Test 6: No Enemy, No Virus\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    fs.appendFile(REPORT_FILE, "Test 7: No Enemy, No Virus\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
     var date = new Date();
-    //fs.appendFile(REPORT_FILE, "\nStates:\n\t1 Food\n\t\tEnabler\n\t\tDirection\n\t\tDistance\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
-    //fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
+    fs.appendFile(REPORT_FILE, "\nStates:\n\t2 Food\n\t\tEnabler\n\t\tDirection\n\t\tDistance\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
+    fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
     fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
     this.shouldUpdateQNetwork = false;
@@ -187,6 +187,22 @@ QBot.prototype.update = function() {
     // Assign Preys, Threats, Viruses & Foods
     this.updateLists(cell);
 
+    this.food.sort(function(a,b){
+        return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
+    });
+    this.prey.sort(function(a,b){
+        return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
+    });
+    this.threats.sort(function(a,b){
+        return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
+    });
+    this.virus.sort(function(a,b){
+        return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
+    });
+    this.allEnemies.sort(function(a,b){
+        return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
+    });
+
     // Action
     if ( this.shouldUpdateQNetwork ){
         var reward = cell.mass - this.previousMass;
@@ -231,46 +247,23 @@ QBot.prototype.clearLists = function() {
     this.virus = [];
 };
 
-//QBot.prototype.getGameState = function(cell) {
-//    var gameState;
-//    if ( this.food.length > 0){ // If there are any foods :)
-//        return 0;
-//    }else{ // If there aren't any food
-//        CommandList.list.killall(this.gameServer,0);
-//        var date = new Date();
-//        // Report the important information to REPORT_FILE
-//        fs.appendFile(REPORT_FILE, "\tDeath: "+date+" because of NO FOOD, SIZE:"+cell.mass+"\n");
-//
-//        return 2;
-//    }
-//
-//
-//    if ( this.food.length > 0 ){
-//        if ( this.allEnemies.length > 0){
-//            gameState = 0;
-//        }else{
-//            gameState = 1;
-//        }
-//    }else{
-//        gameState = 2;
-//    }
-//
-//    return gameState;
-//};
 
 //Decides the action of player
 QBot.prototype.decide = function(cell) {
-    var foodDirection,foodDistance,enemyDirection,enemyDistance,enemyMassDifference;
-    var actionDirection, actionSpeed;
 
-    var foodStateVector = new StateVector(0,0);
-    var foodEnabler = 0;
-    if ( this.food.length > 1){ // If there are any foods
-        var nearestFood = this.findNearest(cell, this.food);
-        foodStateVector = this.getStateVectorFromLocation(cell, nearestFood);
-        foodEnabler = 1;
+    // Find Nearby 2 Foods
+    var nearbyFoods = this.findNearby(cell,this.food,2);
+    var qList = [];
+    for ( var i = 0; i < 2; i++){
+        if ( i < nearbyFoods.length ){
+            var foodStateVector = this.getStateVectorFromLocation(cell,nearbyFoods[i]);
+            var foodEnabler = 1;
+            qList.push(foodEnabler,foodStateVector.direction/MAX_ANGLE,foodStateVector.distance/MAX_DISTANCE);
+        }else{
+            qList.push(0,0,0);
+        }
     }
-    var qList = [foodEnabler, foodStateVector.direction/MAX_ANGLE, foodStateVector.distance/MAX_DISTANCE];
+
     var actionNumber = this.agent.act(qList);
     this.previousMass = cell.mass;
     var action = this.decodeAction(actionNumber);
@@ -281,97 +274,25 @@ QBot.prototype.decide = function(cell) {
     };
     this.shouldUpdateQNetwork = true;
 
-    //var gameState = this.getGameState(cell);
-    //
-    //switch ( gameState ){
-    //    case 0:
-    //        //console.log("Q-Learning");
-    //        // console.log("Mass: "+cell.mass);
-    //        //var nearestThreat = this.findNearest(cell, this.threats);
-    //        //var nearestPrey = this.findNearest(cell, this.prey);
-    //        //var nearestVirus = this.findNearest(cell, this.virus);
-    //
-    //        //var nearestEnemy = this.findNearest(cell, this.allEnemies);
-    //        var nearestFood = this.findNearest(cell, this.food);
-    //
-    //        //var enemyStateVector = this.getStateVectorFromLocation(cell, nearestEnemy);
-    //        var foodStateVector = this.getStateVectorFromLocation(cell, nearestFood);
-    //        //var enemyMassDifference = this.getMassDifference(cell, nearestEnemy);
-    //
-    //        //var currentState = State(foodStateVector.direction, foodStateVector.distance, enemyStateVector.direction, enemyStateVector.distance, enemyMassDifference);
-    //        //var qList = [foodStateVector.direction, foodStateVector.distance, enemyStateVector.direction, enemyStateVector.distance, enemyMassDifference];
-    //        var qList = [1, foodStateVector.direction/MAX_ANGLE, foodStateVector.distance/MAX_DISTANCE];
-    //
-    //        //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
-    //        //console.log("Food Position\nX: "+nearestFood.position.x+"\nY: "+nearestFood.position.y);
-    //        //
-    //        // console.log("State: \n\tFood Direction: "+foodStateVector.direction+"\n\tFood Distance: "+foodStateVector.distance);
-    //        var actionNumber = this.agent.act(qList);
-    //        this.previousMass = cell.mass;
-    //        var action = this.decodeAction(actionNumber);
-    //        var targetLocation = this.getLocationFromAction(cell, action);
-    //        this.targetPos = {
-    //            x: targetLocation.x,
-    //            y: targetLocation.y
-    //        };
-    //        this.shouldUpdateQNetwork = true;
-    //        break;
-    //    case 1:
-    //        //console.log("Nearest Food");
-    //        var nearestFood = this.findNearest(cell, this.food);
-    //        // Set bot's mouse coords to this location
-    //        this.targetPos = {
-    //            x: nearestFood.position.x,
-    //            y: nearestFood.position.y
-    //        };
-    //        break;
-    //    case 2:
-    //
-    //        break;
-    //    default:
-    //        // Random right now
-    //        //console.log("Random");
-    //        var action = this.getRandomAction();
-    //        var targetLocation = this.getLocationFromAction(cell, action)
-    //        this.targetPos = {
-    //            x: targetLocation.x,
-    //            y: targetLocation.y
-    //        };
-    //        break;
-    //}
-
 };
 
-// Finds the nearest cell in list
-QBot.prototype.findNearest = function(cell, list) {
+// Finds nearby cells in list
+QBot.prototype.findNearby = function(cell, list, count) {
     if ( list.length <= 0 ){
         return null;
     }
-    // Check for nearest cell in list
-    var shortest = list[0];
-    var shortestDist = this.getDist(cell, shortest);
-    for (var i = 1; i < list.length; i++) {
-        var check = list[i];
-        var dist = this.getDist(cell, check);
-        if (shortestDist > dist) {
-            shortest = check;
-            shortestDist = dist;
-        }
+
+    list.sort(function(a,b){
+        return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
+    });
+
+    var nearby = [];
+
+    for (var i = 0; (i < count) && (i < list.length); i++){
+        nearby.push(list[i]);
     }
 
-    return shortest;
-};
-
-// Finds the closest Virus
-QBot.prototype.findNearbyVirus = function(cell, checkDist, list) {
-    for (var i = 0; i < list.length; i++) {
-        var check = list[i];
-        var dist = this.getDist(cell, check);
-        if (checkDist > dist) {
-            return check;
-        }
-    }
-    return false; // Returns a bool if no nearby viruses are found
+    return nearby;
 };
 
 // Returns distance between two cells
