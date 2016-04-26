@@ -32,6 +32,11 @@ const MAX_ANGLE = Math.PI;
 // Maximum Mass Difference between two cells.
 const MAX_MASS_DIFFERENCE = 20;
 
+const FOOD_NO = 1;
+const VIRUS_NO = 0;
+const THREAT_NO = 0;
+const PREY_NO = 0;
+
 function QBot() {
     PlayerTracker.apply(this, Array.prototype.slice.call(arguments));
     //this.color = gameServer.getRandomColor();
@@ -61,7 +66,7 @@ function QBot() {
 
     // Initialize DQN Environment
     var env = {};
-    env.getNumStates = function() { return 6;};
+    env.getNumStates = function() { return (3*FOOD_NO + 3*VIRUS_NO + 4*THREAT_NO + 4*PREY_NO);};
     env.getMaxNumActions = function() {return 24;};
     var spec = {
         update: 'qlearn',
@@ -72,7 +77,7 @@ function QBot() {
         experience_size: 5000,
         learning_steps_per_iteration: 20,
         tderror_clamp: 1.0,
-        num_hidden_units: 15
+        num_hidden_units: Math.floor(env.getNumStates()*2.5)
     };
     this.agent;
     try {
@@ -87,7 +92,7 @@ function QBot() {
     // Report the important information to REPORT_FILE
     fs.appendFile(REPORT_FILE, "Test 7: No Enemy, No Virus\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
     var date = new Date();
-    fs.appendFile(REPORT_FILE, "\nStates:\n\t2 Food\n\t\tEnabler\n\t\tDirection\n\t\tDistance\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
+    fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ FOOD_NO +" Food\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t"+ VIRUS_NO +" Virus\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t"+ THREAT_NO +" Threat\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ PREY_NO +" Prey\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
     fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
     fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
@@ -251,16 +256,54 @@ QBot.prototype.clearLists = function() {
 //Decides the action of player
 QBot.prototype.decide = function(cell) {
 
-    // Find Nearby 2 Foods
-    var nearbyFoods = this.findNearby(cell,this.food,2);
+    // Find Nearby N Foods
+    var nearbyFoods = this.findNearby(cell,this.food,FOOD_NO);
     var qList = [];
-    for ( var i = 0; i < 2; i++){
-        if ( i < nearbyFoods.length ){
+    for ( var i = 0; i < FOOD_NO; i++){
+        if ( nearbyFoods != null && i < nearbyFoods.length ){
             var foodStateVector = this.getStateVectorFromLocation(cell,nearbyFoods[i]);
             var foodEnabler = 1;
             qList.push(foodEnabler,foodStateVector.direction/MAX_ANGLE,foodStateVector.distance/MAX_DISTANCE);
         }else{
             qList.push(0,0,0);
+        }
+    }
+
+    // Find Nearby N Viruses
+    var nearbyViruses = this.findNearby(cell,this.virus,VIRUS_NO);
+    for ( var i = 0; i < VIRUS_NO; i++){
+        if ( nearbyViruses != null && i < nearbyViruses.length ){
+            var virusStateVector = this.getStateVectorFromLocation(cell,nearbyViruses[i]);
+            var virusEnabler = 1;
+            qList.push(virusEnabler,virusStateVector.direction/MAX_ANGLE,virusStateVector.distance/MAX_DISTANCE);
+        }else{
+            qList.push(0,0,0);
+        }
+    }
+
+    // Find Nearby N Preys
+    var nearbyPreys = this.findNearby(cell,this.prey,PREY_NO);
+    for ( var i = 0; i < PREY_NO; i++){
+        if ( nearbyPreys != null && i < nearbyPreys.length ){
+            var preyStateVector = this.getStateVectorFromLocation(cell,nearbyPreys[i]);
+            var preyEnabler = 1;
+            var preyMassDifference = this.getMassDifference(cell,nearbyPreys[i]);
+            qList.push(preyEnabler,preyStateVector.direction/MAX_ANGLE,preyStateVector.distance/MAX_DISTANCE,preyMassDifference/MAX_MASS_DIFFERENCE);
+        }else{
+            qList.push(0,0,0,0);
+        }
+    }
+
+    // Find Nearby N Threats
+    var nearbyThreats = this.findNearby(cell,this.threats,THREAT_NO);
+    for ( var i = 0; i < THREAT_NO; i++){
+        if ( nearbyThreats != null && i < nearbyThreats.length ){
+            var threatsStateVector = this.getStateVectorFromLocation(cell,nearbyThreats[i]);
+            var threatsEnabler = 1;
+            var threatMassDifference = this.getMassDifference(cell,nearbyThreats[i]);
+            qList.push(threatsEnabler,threatsStateVector.direction/MAX_ANGLE,threatsStateVector.distance/MAX_DISTANCE,threatMassDifference/MAX_MASS_DIFFERENCE);
+        }else{
+            qList.push(0,0,0,0);
         }
     }
 
@@ -278,7 +321,7 @@ QBot.prototype.decide = function(cell) {
 
 // Finds nearby cells in list
 QBot.prototype.findNearby = function(cell, list, count) {
-    if ( list.length <= 0 ){
+    if ( list.length <= 0 || count == 0){
         return null;
     }
 
@@ -469,22 +512,11 @@ QBot.prototype.getLocationFromAction = function(cell, action){
 QBot.prototype.getMassDifference = function(cell, check){
     var dMass = Math.round((cell.mass - check.mass)/10);
     if (dMass > MAX_MASS_DIFFERENCE)
-        dMass = MAX_MASS_DIFFERENCE
+        dMass = MAX_MASS_DIFFERENCE;
     else if (dMass < -MAX_MASS_DIFFERENCE)
         dMass = -MAX_MASS_DIFFERENCE;
     //console.log(dMass);
     return dMass;
-};
-
-// Returns a random Action
-QBot.prototype.getRandomAction = function(){
-
-    var angle = 2*Math.PI*Math.random();
-    if ( angle > Math.PI){
-        angle -= 2*Math.PI;
-    }
-    var speed = 150*Math.random();
-    return new Action(angle,speed);
 };
 
 // Encode - Decode DQN Values
@@ -525,14 +557,6 @@ function StateVector(direction, distance){
     this.direction = direction;
     this.distance = distance;
 };
-
-//function State(foodDirection, foodDistance, enemyDirection, enemyDistance, enemyMassDifference) {
-//    this.foodDirection = foodDirection;
-//    this.foodDistance = foodDistance;
-//    this.enemyDirection = enemyDirection;
-//    this.enemyDistance = enemyDistance;
-//    this.enemyMassDifference = enemyMassDifference;
-//};
 
 // A position class with X and Y
 function Position(x, y){
