@@ -6,13 +6,12 @@ var PlayerTracker = require('../PlayerTracker');
 var gameServer = require('../GameServer');
 var CommandList = require("../modules/CommandList");
 
-var Synaptic = require("synaptic");
 var Reinforce = require("Reinforcejs");
 
 var fs = require("fs");
-const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
+const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json2";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report7.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report8.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -32,7 +31,7 @@ const MAX_ANGLE = Math.PI;
 // Maximum Mass Difference between two cells.
 const MAX_MASS_DIFFERENCE = 20;
 
-const FOOD_NO = 1;
+const FOOD_NO = 2;
 const VIRUS_NO = 0;
 const THREAT_NO = 0;
 const PREY_NO = 0;
@@ -42,8 +41,6 @@ function QBot() {
     //this.color = gameServer.getRandomColor();
 
     // AI only
-    this.gameState = 0;
-    this.path = [];
 
     this.allEnemies = [];
 
@@ -52,11 +49,6 @@ function QBot() {
     this.food = [];
     this.virus = []; // List of viruses
 
-    this.target;
-    this.targetVirus; // Virus used to shoot into the target
-    this.virusShots = 0; // Amount of pressed W to explode target via target virus
-
-    this.ejectMass = 0; // Amount of times to eject mass
     this.targetPos = {
         x: 0,
         y: 0
@@ -105,51 +97,21 @@ QBot.prototype = new PlayerTracker();
 // Functions
 
 // Returns the lowest cell of the player
-QBot.prototype.getLowestCell = function() {
+QBot.prototype.getBiggestCell = function() {
     // Gets the cell with the lowest mass
     if (this.cells.length <= 0) {
         return null; // Error!
     }
 
-    // Starting cell
-    var lowest = this.cells[0];
-    for (i = 1; i < this.cells.length; i++) {
-        if (lowest.mass > this.cells[i].mass) {
-            lowest = this.cells[i];
-        }
-    }
-    return lowest;
+    // Sort the cells by Array.sort() function to avoid errors
+    var sorted = this.cells.valueOf();
+    sorted.sort(function(a, b) {
+        return b.mass - a.mass;
+    });
+
+    return sorted[0];
 };
 
-// Returns the highest cell of the player
-QBot.prototype.getHighestCell = function() {
-    // Gets the cell with the highest mass
-    if (this.cells.length <= 0) {
-        return null; // Error!
-    }
-
-    // Starting cell
-    var highest = this.cells[0];
-    for (i = 1; i < this.cells.length; i++) {
-        if (highest.mass > this.cells[i].mass) {
-            highest = this.cells[i];
-        }
-    }
-    return highest;
-};
-
-// Don't override, testing to use more accurate way.
-/*
- QBot.prototype.updateSightRange = function() { // For view distance
- var range = 1000; // Base sight range
-
- if (this.cells[0]) {
- range += this.cells[0].getSize() * 2.5;
- }
-
- this.sightRangeX = range;
- this.sightRangeY = range;
- }; */
 
 // Overrides the update function from player tracker
 QBot.prototype.update = function() {
@@ -180,11 +142,8 @@ QBot.prototype.update = function() {
     // Calculate nodes
     this.visibleNodes = this.calcViewBox();
 
-    var dy = this.viewBox.bottomY - this.viewBox.topY;
-    var dx = this.viewBox.rightX - this.viewBox.leftX;
-
     // Get Lowest cell of the bot
-    var cell = this.getLowestCell();
+    var cell = this.getBiggestCell();
     var r = cell.getSize();
     this.clearLists();
 

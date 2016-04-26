@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "dependencies": {
     "synaptic": "^1.0.2",
-    "ws": "^1.0.1"
+    "vector2-node": "latest",
+    "ws": "latest"
   },
   "devDependencies": {},
   "scripts": {

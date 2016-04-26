@@ -45,13 +45,29 @@ BotLoader.prototype.loadNames = function() {
 };
 
 BotLoader.prototype.addBot = function() {
-    var s = new FakeSocket(this.gameServer);
-    s.playerTracker = new QBot(this.gameServer, s);
-    s.packetHandler = new PacketHandler(this.gameServer, s);
+    for ( var i = 0; i < 1; i++){
+        if (i == 0){
+            var s = new FakeSocket(this.gameServer);
+            s.playerTracker = new QBot(this.gameServer, s);
+            s.packetHandler = new PacketHandler(this.gameServer, s);
 
-    // Add to client list
-    this.gameServer.clients.push(s);
+            // Add to client list
+            this.gameServer.clients.push(s);
 
-    // Add to world
-    s.packetHandler.setNickname(this.getName());
+            // Add to world
+            s.packetHandler.setNickname("QBot");
+        }else{
+            var s = new FakeSocket(this.gameServer);
+            s.playerTracker = new BotPlayer(this.gameServer, s);
+            s.packetHandler = new PacketHandler(this.gameServer, s);
+
+            // Add to client list
+            this.gameServer.clients.push(s);
+
+            // Add to world
+            s.packetHandler.setNickname(this.getName());
+        }
+
+    }
+
 };
