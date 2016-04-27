@@ -11,13 +11,13 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report7.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report8.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
 
 // Server will be restarted when the cell's mass is equal to this.
-const TRIAL_RESET_MASS = 100;
+const TRIAL_RESET_MASS = 1000;
 
 // Maximum Speed a cell can have
 const MAX_SPEED = 150.0;
@@ -31,18 +31,16 @@ const MAX_ANGLE = Math.PI;
 // Maximum Mass Difference between two cells.
 const MAX_MASS_DIFFERENCE = 20;
 
-const FOOD_NO = 2;
-const VIRUS_NO = 0;
-const THREAT_NO = 0;
-const PREY_NO = 0;
+const FOOD_NO = 3;
+const VIRUS_NO = 1;
+const THREAT_NO = 1;
+const PREY_NO = 1;
 
 function QBot() {
     PlayerTracker.apply(this, Array.prototype.slice.call(arguments));
     //this.color = gameServer.getRandomColor();
 
     // AI only
-
-    this.allEnemies = [];
 
     this.threats = []; // List of cells that can eat this bot but are too far away
     this.prey = []; // List of cells that can be eaten by this bot
@@ -58,7 +56,7 @@ function QBot() {
 
     // Initialize DQN Environment
     var env = {};
-    env.getNumStates = function() { return (3*FOOD_NO + 3*VIRUS_NO + 4*THREAT_NO + 4*PREY_NO);};
+    env.getNumStates = function() { return (3*FOOD_NO + 4*VIRUS_NO + 4*THREAT_NO + 4*PREY_NO);};
     env.getMaxNumActions = function() {return 24;};
     var spec = {
         update: 'qlearn',
@@ -82,9 +80,9 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 7: No Enemy, No Virus\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    fs.appendFile(REPORT_FILE, "Test 7:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
     var date = new Date();
-    fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ FOOD_NO +" Food\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t"+ VIRUS_NO +" Virus\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t"+ THREAT_NO +" Threat\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ PREY_NO +" Prey\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
+    fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ FOOD_NO +" Food\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t"+ VIRUS_NO +" Virus\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ THREAT_NO +" Threat\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ PREY_NO +" Prey\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
     fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
     fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
@@ -126,6 +124,10 @@ QBot.prototype.update = function() {
 
     // Respawn if bot is dead
     if (this.cells.length <= 0) {
+        CommandList.list.killall(this.gameServer,0);
+        var date = new Date();
+        // Report the important information to REPORT_FILE
+        fs.appendFile(REPORT_FILE, "\tDeath: "+date+" with Size: "+this.previousMass+"\n");
         this.gameServer.gameMode.onPlayerSpawn(this.gameServer, this);
         if (this.cells.length == 0) {
 
@@ -161,9 +163,6 @@ QBot.prototype.update = function() {
         return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
     });
     this.virus.sort(function(a,b){
-        return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
-    });
-    this.allEnemies.sort(function(a,b){
         return QBot.prototype.getDist(cell,a) - QBot.prototype.getDist(cell,b);
     });
 
@@ -204,7 +203,6 @@ QBot.prototype.update = function() {
 // Custom
 
 QBot.prototype.clearLists = function() {
-    this.allEnemies = [];
     this.threats = [];
     this.prey = [];
     this.food = [];
@@ -224,7 +222,7 @@ QBot.prototype.decide = function(cell) {
             var foodEnabler = 1;
             qList.push(foodEnabler,foodStateVector.direction/MAX_ANGLE,foodStateVector.distance/MAX_DISTANCE);
         }else{
-            qList.push(0,0,0);
+            qList.push(0,-2,2);
         }
     }
 
@@ -234,9 +232,10 @@ QBot.prototype.decide = function(cell) {
         if ( nearbyViruses != null && i < nearbyViruses.length ){
             var virusStateVector = this.getStateVectorFromLocation(cell,nearbyViruses[i]);
             var virusEnabler = 1;
-            qList.push(virusEnabler,virusStateVector.direction/MAX_ANGLE,virusStateVector.distance/MAX_DISTANCE);
+            var virusMassDifference = this.getMassDifference(cell, nearbyViruses[i]);
+            qList.push(virusEnabler,virusStateVector.direction/MAX_ANGLE,virusStateVector.distance/MAX_DISTANCE, virusMassDifference/MAX_MASS_DIFFERENCE);
         }else{
-            qList.push(0,0,0);
+            qList.push(0,-2,2,0);
         }
     }
 
@@ -249,7 +248,7 @@ QBot.prototype.decide = function(cell) {
             var preyMassDifference = this.getMassDifference(cell,nearbyPreys[i]);
             qList.push(preyEnabler,preyStateVector.direction/MAX_ANGLE,preyStateVector.distance/MAX_DISTANCE,preyMassDifference/MAX_MASS_DIFFERENCE);
         }else{
-            qList.push(0,0,0,0);
+            qList.push(0,-2,2,0);
         }
     }
 
@@ -262,7 +261,7 @@ QBot.prototype.decide = function(cell) {
             var threatMassDifference = this.getMassDifference(cell,nearbyThreats[i]);
             qList.push(threatsEnabler,threatsStateVector.direction/MAX_ANGLE,threatsStateVector.distance/MAX_DISTANCE,threatMassDifference/MAX_MASS_DIFFERENCE);
         }else{
-            qList.push(0,0,0,0);
+            qList.push(0,-2,2,0);
         }
     }
 
@@ -352,10 +351,8 @@ QBot.prototype.updateLists = function(cell){
                 if (cell.mass > (check.mass * 1.33)) {
                     // Add to prey list
                     this.prey.push(check);
-                    this.allEnemies.push(check);
                 } else if (check.mass > (cell.mass * 1.33)) {
                     this.threats.push(check);
-                    this.allEnemies.push(check);
                 }
                 break;
             case 1:
@@ -364,7 +361,6 @@ QBot.prototype.updateLists = function(cell){
             case 2: // Virus
                 if (!check.isMotherCell) {
                     this.virus.push(check);
-                    this.allEnemies.push(check);
                 } // Only real viruses! No mother cells
                 break;
             case 3: // Ejected mass

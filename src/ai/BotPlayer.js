@@ -132,10 +132,10 @@ BotPlayer.prototype.decide = function(cell) {
                 
             var endDist = Math.max(this.splitDistance(cell), cell.getSize() * 4);
             
-            if (distance < endDist - cell.getSize() - check.getSize()) {
-                splitTarget = check;
-                split = true;
-            }
+            //if (distance < endDist - cell.getSize() - check.getSize()) {
+            //    splitTarget = check;
+            //    split = true;
+            //}
         } else {
             // Add up forces on the entity
             result.add(force);

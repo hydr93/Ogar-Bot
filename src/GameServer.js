@@ -133,7 +133,8 @@ GameServer.prototype.start = function() {
 
         // Player bots (Experimental)
         if (this.config.serverBots > 0) {
-            for (var i = 0; i < this.config.serverBots; i++) {
+            this.bots.addQBot();
+            for (var i = 1; i < this.config.serverBots; i++) {
                 this.bots.addBot();
             }
             console.log("[Game] Loaded " + this.config.serverBots + " player bots");
