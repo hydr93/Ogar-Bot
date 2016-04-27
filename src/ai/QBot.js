@@ -9,9 +9,9 @@ var CommandList = require("../modules/CommandList");
 var Reinforce = require("Reinforcejs");
 
 var fs = require("fs");
-const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json2";
+const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report8.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report7.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
