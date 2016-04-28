@@ -11,7 +11,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report8.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report9.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -124,10 +124,18 @@ QBot.prototype.update = function() {
 
     // Respawn if bot is dead
     if (this.cells.length <= 0) {
+
+        var reward = 0 - this.previousMass;
+        this.agent.learn(reward);
+        this.shouldUpdateQNetwork = false;
+        var json = this.agent.toJSON();
+        fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
+
         CommandList.list.killall(this.gameServer,0);
         var date = new Date();
         // Report the important information to REPORT_FILE
         fs.appendFile(REPORT_FILE, "\tDeath: "+date+" with Size: "+this.previousMass+"\n");
+
         this.gameServer.gameMode.onPlayerSpawn(this.gameServer, this);
         if (this.cells.length == 0) {
 
