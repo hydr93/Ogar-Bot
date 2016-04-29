@@ -1,0 +1,18 @@
+
+Trial No: 1
+	Birth: Fri Apr 29 2016 12:19:26 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 13:03:52 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 13:03:52 GMT+0300 (EEST) with Size: 100.66396030712006
+
+Trial No: 2
+	Birth: Fri Apr 29 2016 13:03:52 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 13:14:11 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 13:14:12 GMT+0300 (EEST) with Size: 100.30457495935123
+
+Trial No: 3
+	Birth: Fri Apr 29 2016 13:14:12 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 13:31:46 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 13:31:46 GMT+0300 (EEST) with Size: 100.03189473214802
+
+Trial No: 4
+	Birth: Fri Apr 29 2016 13:31:46 GMT+0300 (EEST)
