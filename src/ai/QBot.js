@@ -11,13 +11,13 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report9.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report10.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
 
 // Server will be restarted when the cell's mass is equal to this.
-const TRIAL_RESET_MASS = 1000;
+const TRIAL_RESET_MASS = 200;
 
 // Maximum Speed a cell can have
 const MAX_SPEED = 150.0;
@@ -31,7 +31,7 @@ const MAX_ANGLE = Math.PI;
 // Maximum Mass Difference between two cells.
 const MAX_MASS_DIFFERENCE = 20;
 
-const FOOD_NO = 3;
+const FOOD_NO = 2;
 const VIRUS_NO = 1;
 const THREAT_NO = 1;
 const PREY_NO = 1;
@@ -53,6 +53,7 @@ function QBot() {
     };
 
     this.previousMass = 10;
+    this.previousLenght = 1;
 
     // Initialize DQN Environment
     var env = {};
@@ -80,10 +81,10 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 7:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    //fs.appendFile(REPORT_FILE, "Test 10:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
     var date = new Date();
-    fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ FOOD_NO +" Food\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t"+ VIRUS_NO +" Virus\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ THREAT_NO +" Threat\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ PREY_NO +" Prey\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
-    fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
+    //fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ FOOD_NO +" Food\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t"+ VIRUS_NO +" Virus\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ THREAT_NO +" Threat\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ PREY_NO +" Prey\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
+    //fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
     fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
     this.shouldUpdateQNetwork = false;
@@ -125,8 +126,7 @@ QBot.prototype.update = function() {
     // Respawn if bot is dead
     if (this.cells.length <= 0) {
 
-        var reward = 0 - this.previousMass;
-        this.agent.learn(reward);
+        this.agent.learn(-1);
         this.shouldUpdateQNetwork = false;
         var json = this.agent.toJSON();
         fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
@@ -176,7 +176,16 @@ QBot.prototype.update = function() {
 
     // Action
     if ( this.shouldUpdateQNetwork ){
-        var reward = cell.mass - this.previousMass;
+        var totalMass = 0;
+        for ( var i = 0 ; i < this.cells.length ; i++){
+            totalMass += this.cells[i].mass;
+        }
+
+        var reward = (totalMass - this.previousMass)/Math.max(totalMass, this.previousMass) + (this.previousLenght - this.cells.length)/Math.max(this.previousLenght, this.cells.length);
+        if ( reward > 1 )
+            reward = 1;
+        else if (reward < -1)
+            reward = -1;
         //console.log("Reward: "+reward);
         this.agent.learn(reward);
         this.shouldUpdateQNetwork = false;
@@ -228,22 +237,21 @@ QBot.prototype.decide = function(cell) {
         if ( nearbyFoods != null && i < nearbyFoods.length ){
             var foodStateVector = this.getStateVectorFromLocation(cell,nearbyFoods[i]);
             var foodEnabler = 1;
-            qList.push(foodEnabler,foodStateVector.direction/MAX_ANGLE,foodStateVector.distance/MAX_DISTANCE);
+            qList.push(foodEnabler,(((foodStateVector.direction/MAX_ANGLE)+1)/2.0),foodStateVector.distance/MAX_DISTANCE);
         }else{
-            qList.push(0,-2,2);
+            qList.push(0,-1,-1);
         }
     }
 
     // Find Nearby N Viruses
     var nearbyViruses = this.findNearby(cell,this.virus,VIRUS_NO);
     for ( var i = 0; i < VIRUS_NO; i++){
-        if ( nearbyViruses != null && i < nearbyViruses.length ){
+        if ( nearbyViruses != null && i < nearbyViruses.length){
             var virusStateVector = this.getStateVectorFromLocation(cell,nearbyViruses[i]);
             var virusEnabler = 1;
-            var virusMassDifference = this.getMassDifference(cell, nearbyViruses[i]);
-            qList.push(virusEnabler,virusStateVector.direction/MAX_ANGLE,virusStateVector.distance/MAX_DISTANCE, virusMassDifference/MAX_MASS_DIFFERENCE);
+            qList.push(virusEnabler,(((virusStateVector.direction/MAX_ANGLE)+1)/2.0),virusStateVector.distance/MAX_DISTANCE,  this.compareCellWithVirus(cell,nearbyViruses[i]));
         }else{
-            qList.push(0,-2,2,0);
+            qList.push(0,-1,-1,0);
         }
     }
 
@@ -254,9 +262,9 @@ QBot.prototype.decide = function(cell) {
             var preyStateVector = this.getStateVectorFromLocation(cell,nearbyPreys[i]);
             var preyEnabler = 1;
             var preyMassDifference = this.getMassDifference(cell,nearbyPreys[i]);
-            qList.push(preyEnabler,preyStateVector.direction/MAX_ANGLE,preyStateVector.distance/MAX_DISTANCE,preyMassDifference/MAX_MASS_DIFFERENCE);
+            qList.push(preyEnabler,(((preyStateVector.direction/MAX_ANGLE)+1)/2.0),preyStateVector.distance/MAX_DISTANCE,preyMassDifference/MAX_MASS_DIFFERENCE);
         }else{
-            qList.push(0,-2,2,0);
+            qList.push(0,-1,-1,0);
         }
     }
 
@@ -267,14 +275,20 @@ QBot.prototype.decide = function(cell) {
             var threatsStateVector = this.getStateVectorFromLocation(cell,nearbyThreats[i]);
             var threatsEnabler = 1;
             var threatMassDifference = this.getMassDifference(cell,nearbyThreats[i]);
-            qList.push(threatsEnabler,threatsStateVector.direction/MAX_ANGLE,threatsStateVector.distance/MAX_DISTANCE,threatMassDifference/MAX_MASS_DIFFERENCE);
+            qList.push(threatsEnabler,(((threatsStateVector.direction/MAX_ANGLE)+1)/2.0),threatsStateVector.distance/MAX_DISTANCE,threatMassDifference/MAX_MASS_DIFFERENCE);
         }else{
-            qList.push(0,-2,2,0);
+            qList.push(0,-1,-1,0);
         }
     }
 
     var actionNumber = this.agent.act(qList);
-    this.previousMass = cell.mass;
+
+    var totalMass = 0;
+    for ( var i = 0 ; i < this.cells.length ; i++)
+        totalMass += this.cells[i].mass;
+
+    this.previousMass = totalMass;
+    this.previousLenght = this.cells.length;
     var action = this.decodeAction(actionNumber);
     var targetLocation = this.getLocationFromAction(cell, action);
     this.targetPos = {
@@ -469,6 +483,13 @@ QBot.prototype.getLocationFromAction = function(cell, action){
     var speed = action.speed;
     var distance = this.getDistanceFromSpeed(speed);
     return new Position(cell.position.x + distance * Math.sin(direction), cell.position.y + distance * Math.cos(direction));
+};
+
+QBot.prototype.compareCellWithVirus = function(cell, virus){
+    if (cell.mass * 1.33 > virus.mass)
+        return 1;
+    else
+        return 0;
 };
 
 // Returns the mass difference of two cells

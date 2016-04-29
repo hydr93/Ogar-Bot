@@ -373,7 +373,8 @@ PlayerTracker.prototype.calcViewBox = function() {
 };
 
 PlayerTracker.prototype.getSpectateNodes = function() {
-    var specPlayer = this.gameServer.largestClient;
+    //var specPlayer = this.gameServer.largestClient
+    var specPlayer = this.gameServer.clients[0].playerTracker;
 
     if (!this.freeRoam) {
 
