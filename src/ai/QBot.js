@@ -63,12 +63,13 @@ function QBot() {
         update: 'qlearn',
         gamma: 0.9,
         epsilon: 0.2,
-        alpha: 0.1,
-        experience_add_every: 10,
-        experience_size: 5000,
-        learning_steps_per_iteration: 20,
+        alpha: 0.005,
+        experience_add_every: 5,
+        experience_size: 10000,
+        learning_steps_per_iteration: 5,
         tderror_clamp: 1.0,
-        num_hidden_units: Math.floor(env.getNumStates()*2.5)
+        num_hidden_units: Math.floor(env.getNumStates()*2.5),
+        activation_function: 3
     };
     this.agent;
     try {
@@ -280,7 +281,6 @@ QBot.prototype.decide = function(cell) {
             qList.push(0,-1,-1,0);
         }
     }
-
     var actionNumber = this.agent.act(qList);
 
     var totalMass = 0;
