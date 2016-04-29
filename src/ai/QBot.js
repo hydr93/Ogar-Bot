@@ -31,10 +31,10 @@ const MAX_ANGLE = Math.PI;
 // Maximum Mass Difference between two cells.
 const MAX_MASS_DIFFERENCE = 20;
 
-const FOOD_NO = 2;
-const VIRUS_NO = 1;
-const THREAT_NO = 1;
-const PREY_NO = 1;
+const FOOD_NO = 5;
+const VIRUS_NO = 0;
+const THREAT_NO = 0;
+const PREY_NO = 0;
 
 function QBot() {
     PlayerTracker.apply(this, Array.prototype.slice.call(arguments));
@@ -238,9 +238,9 @@ QBot.prototype.decide = function(cell) {
         if ( nearbyFoods != null && i < nearbyFoods.length ){
             var foodStateVector = this.getStateVectorFromLocation(cell,nearbyFoods[i]);
             var foodEnabler = 1;
-            qList.push(foodEnabler,(((foodStateVector.direction/MAX_ANGLE)+1)/2.0),foodStateVector.distance/MAX_DISTANCE);
+            qList.push(foodEnabler,(((foodStateVector.direction/MAX_ANGLE)+1)/2.0),1-(foodStateVector.distance/MAX_DISTANCE));
         }else{
-            qList.push(0,-1,-1);
+            qList.push(-1,-1,-1);
         }
     }
 
@@ -252,7 +252,7 @@ QBot.prototype.decide = function(cell) {
             var virusEnabler = 1;
             qList.push(virusEnabler,(((virusStateVector.direction/MAX_ANGLE)+1)/2.0),virusStateVector.distance/MAX_DISTANCE,  this.compareCellWithVirus(cell,nearbyViruses[i]));
         }else{
-            qList.push(0,-1,-1,0);
+            qList.push(-1,-1,-1,0);
         }
     }
 
@@ -265,7 +265,7 @@ QBot.prototype.decide = function(cell) {
             var preyMassDifference = this.getMassDifference(cell,nearbyPreys[i]);
             qList.push(preyEnabler,(((preyStateVector.direction/MAX_ANGLE)+1)/2.0),preyStateVector.distance/MAX_DISTANCE,preyMassDifference/MAX_MASS_DIFFERENCE);
         }else{
-            qList.push(0,-1,-1,0);
+            qList.push(-1,-1,-1,0);
         }
     }
 
@@ -278,7 +278,7 @@ QBot.prototype.decide = function(cell) {
             var threatMassDifference = this.getMassDifference(cell,nearbyThreats[i]);
             qList.push(threatsEnabler,(((threatsStateVector.direction/MAX_ANGLE)+1)/2.0),threatsStateVector.distance/MAX_DISTANCE,threatMassDifference/MAX_MASS_DIFFERENCE);
         }else{
-            qList.push(0,-1,-1,0);
+            qList.push(-1,-1,-1,0);
         }
     }
     var actionNumber = this.agent.act(qList);
