@@ -11,13 +11,13 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report10.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report11.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
 
 // Server will be restarted when the cell's mass is equal to this.
-const TRIAL_RESET_MASS = 200;
+const TRIAL_RESET_MASS = 100;
 
 // Maximum Speed a cell can have
 const MAX_SPEED = 150.0;
@@ -31,7 +31,7 @@ const MAX_ANGLE = Math.PI;
 // Maximum Mass Difference between two cells.
 const MAX_MASS_DIFFERENCE = 20;
 
-const FOOD_NO = 5;
+const FOOD_NO = 1;
 const VIRUS_NO = 0;
 const THREAT_NO = 0;
 const PREY_NO = 0;
@@ -52,7 +52,7 @@ function QBot() {
         y: 0
     };
 
-    this.previousMass = 10;
+    this.previousMass = 10.0;
     this.previousLenght = 1;
 
     // Initialize DQN Environment
@@ -127,10 +127,10 @@ QBot.prototype.update = function() {
     // Respawn if bot is dead
     if (this.cells.length <= 0) {
 
-        this.agent.learn(-1);
-        this.shouldUpdateQNetwork = false;
-        var json = this.agent.toJSON();
-        fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
+        //this.agent.learn(-1);
+        //this.shouldUpdateQNetwork = false;
+        //var json = this.agent.toJSON();
+        //fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
 
         CommandList.list.killall(this.gameServer,0);
         var date = new Date();
@@ -177,18 +177,8 @@ QBot.prototype.update = function() {
 
     // Action
     if ( this.shouldUpdateQNetwork ){
-        var totalMass = 0;
-        for ( var i = 0 ; i < this.cells.length ; i++){
-            totalMass += this.cells[i].mass;
-        }
 
-        var reward = (totalMass - this.previousMass)/Math.max(totalMass, this.previousMass) + (this.previousLenght - this.cells.length)/Math.max(this.previousLenght, this.cells.length);
-        if ( reward > 1 )
-            reward = 1;
-        else if (reward < -1)
-            reward = -1;
-        //console.log("Reward: "+reward);
-        this.agent.learn(reward);
+        this.agent.learn(this.reward());
         this.shouldUpdateQNetwork = false;
         var json = this.agent.toJSON();
         fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
@@ -238,7 +228,7 @@ QBot.prototype.decide = function(cell) {
         if ( nearbyFoods != null && i < nearbyFoods.length ){
             var foodStateVector = this.getStateVectorFromLocation(cell,nearbyFoods[i]);
             var foodEnabler = 1;
-            qList.push(foodEnabler,(((foodStateVector.direction/MAX_ANGLE)+1)/2.0),1-(foodStateVector.distance/MAX_DISTANCE));
+            qList.push(foodEnabler,(((foodStateVector.direction/MAX_ANGLE)+1)/2.0),(foodStateVector.distance/MAX_DISTANCE));
         }else{
             qList.push(-1,-1,-1);
         }
@@ -287,8 +277,6 @@ QBot.prototype.decide = function(cell) {
     for ( var i = 0 ; i < this.cells.length ; i++)
         totalMass += this.cells[i].mass;
 
-    this.previousMass = totalMass;
-    this.previousLenght = this.cells.length;
     var action = this.decodeAction(actionNumber);
     var targetLocation = this.getLocationFromAction(cell, action);
     this.targetPos = {
@@ -527,6 +515,25 @@ QBot.prototype.decodeAction = function(q){
     // console.log("Action: \n\tDirection: "+direction+"\n\tSpeed: "+speed);
     return new Action(direction, speed);
 };
+
+QBot.prototype.reward = function (){
+
+    //var reward = (totalMass - this.previousMass)/Math.max(totalMass, this.previousMass) + (this.previousLenght - this.cells.length)/Math.max(this.previousLenght, this.cells.length);
+    //if ( reward > 1 )
+    //    reward = 1;
+    //else if (reward < -1)
+    //    reward = -1;
+
+    //this.previousLenght = this.cells.length;
+
+    var currentMass = 0;
+    for ( var i = 0 ; i < this.cells.length ; i++){
+        currentMass += this.cells[i].mass;
+    }
+    var result = currentMass - this.previousMass;
+    this.previousMass = currentMass;
+    return result;
+}
 
 // Necessary Classes
 
