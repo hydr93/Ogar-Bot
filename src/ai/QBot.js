@@ -42,7 +42,7 @@ function QBot() {
 
     this.directionArray = [];
     for ( var i = 0 ; i < DIRECTION_COUNT ; i++) {
-        this.directionArray.push([]);
+        this.directionArray.push(new Array);
     }
 
     this.targetPos = {
@@ -61,13 +61,13 @@ function QBot() {
         update: 'qlearn',
         gamma: 0.9,
         epsilon: 0.2,
-        alpha: 0.005,
+        alpha: 0.1,
         experience_add_every: 5,
-        experience_size: 10000,
+        experience_size: 5000,
         learning_steps_per_iteration: 5,
         tderror_clamp: 1.0,
         num_hidden_layers: 3,
-        num_hidden_units: 100,
+        num_hidden_units: 56,
         activation_function: 3
     };
     this.agent;
@@ -81,9 +81,9 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 12:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    fs.appendFile(REPORT_FILE, "Test 1:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Layers: 3\nNumber of Hidden Units: "+spec.num_hidden_units+" "+Math.floor(spec.num_hidden_units/4)+" "+Math.floor(Math.floor(spec.num_hidden_units/4)/4)+" "+"\n");
     var date = new Date();
-    fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ DIRECTION_COUNT +" Directions\n\t\tEnabler\n\t\tDirection\n\t\tSize Difference\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
+    fs.appendFile(REPORT_FILE, "\nStates:\n\tMy Location\n\t\tX\n\t\tY\n\t"+ DIRECTION_COUNT +" Directions\n\t\tEnabler\n\t\tDirection\n\t\tSize Difference\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
     fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
     fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
@@ -209,9 +209,10 @@ QBot.prototype.clearLists = function() {
 QBot.prototype.decide = function(cell){
 
     var qList = [cell.position.x/6000, cell.position.y/6000];
+
     for ( var j = 0 ; j < this.directionArray.length ; j++){
-        if ( this.directionArray[i] != null && this.directionArray[i].length > 0){
-            var nearby = this.findNearby(cell, this.directionArray[i], MAX_CELL_IN_DIRECTION);
+        if ( this.directionArray[j] != null && this.directionArray[j].length > 0){
+            var nearby = this.findNearby(cell, this.directionArray[j], MAX_CELL_IN_DIRECTION);
             for ( var i = 0; i < MAX_CELL_IN_DIRECTION; i++){
                 if ( nearby != null && i < nearby.length){
                     var distance = this.getDist(cell, nearby[i]);
@@ -419,9 +420,9 @@ QBot.prototype.reward = function (){
     for ( var i = 0 ; i < this.cells.length ; i++){
         currentMass += this.cells[i].mass;
     }
-    var result = currentMass - this.previousMass;
+    var rew = (currentMass - this.previousMass);
     this.previousMass = currentMass;
-    return result;
+    return rew;
 };
 
 // Necessary Classes

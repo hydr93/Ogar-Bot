@@ -1,0 +1,56 @@
+
+States:
+	My Location
+		X
+		Y
+	8 Directions
+		Enabler
+		Direction
+		Size Difference
+Actions:
+	Walk
+		8 Directions
+		3 Speed
+Test 1:
+
+Number of States: 26
+Number of Actions: 24
+Number of Hidden Layers: 3
+Number of Hidden Units: 56 14 3 
+
+Trial Reset Mass: 100
+
+Trial No: 1
+	Birth: Fri Apr 29 2016 19:47:28 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 20:13:35 GMT+0300 (EEST)
+
+Trial No: 2
+	Birth: Fri Apr 29 2016 20:13:35 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 20:43:28 GMT+0300 (EEST)
+
+Trial No: 3
+	Birth: Fri Apr 29 2016 20:43:28 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 20:57:00 GMT+0300 (EEST)
+
+Trial No: 4
+	Birth: Fri Apr 29 2016 20:57:00 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 22:03:34 GMT+0300 (EEST)
+
+Trial No: 5
+	Birth: Fri Apr 29 2016 22:03:34 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 22:16:40 GMT+0300 (EEST)
+
+Trial No: 6
+	Birth: Fri Apr 29 2016 22:16:40 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 23:17:28 GMT+0300 (EEST)
+
+Trial No: 7
+	Birth: Fri Apr 29 2016 23:17:28 GMT+0300 (EEST)
+	Death: Fri Apr 29 2016 23:50:10 GMT+0300 (EEST)
+
+Trial No: 8
+	Birth: Fri Apr 29 2016 23:50:10 GMT+0300 (EEST)
+	Death: Sat Apr 30 2016 00:07:44 GMT+0300 (EEST)
+
+Trial No: 9
+	Birth: Sat Apr 30 2016 00:07:44 GMT+0300 (EEST)
