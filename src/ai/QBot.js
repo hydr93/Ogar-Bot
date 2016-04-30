@@ -11,7 +11,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report2.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report3.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -58,7 +58,7 @@ function QBot() {
     // Initialize DQN Environment
     var env = {};
     env.getNumStates = function() { return 3+(3*DIRECTION_COUNT);};
-    env.getMaxNumActions = function() {return 24;};
+    env.getMaxNumActions = function() {return 8;};
     var spec = {
         update: 'qlearn',
         gamma: 0.9,
@@ -129,6 +129,7 @@ QBot.prototype.update = function() {
     if (this.cells.length <= 0) {
 
         if ( this.shouldUpdateQNetwork ){
+            console.log("Updating DQN because of Dying");
             this.agent.learn(-0.1*this.previousMass);
             this.shouldUpdateQNetwork = false;
             var json = this.agent.toJSON();
@@ -178,21 +179,15 @@ QBot.prototype.update = function() {
     // Learn till the mass is equal to Reset Mass
     if ( cell.mass > TRIAL_RESET_MASS){
         CommandList.list.killall(this.gameServer,0);
-        var date = new Date();
-        // Report the important information to REPORT_FILE
-        fs.appendFile(REPORT_FILE, "\tDeath: "+date+"\n");
+    }else{
+        this.decide(cell);
+
+        // Now update mouse
+        this.mouse = {
+            x: this.targetPos.x,
+            y: this.targetPos.y
+        };
     }
-
-    this.decide(cell);
-
-    //console.log("Current Position\nX: "+cell.position.x+"\nY: "+cell.position.y);
-    //console.log("Destination Position\nX: "+this.targetPos.x+"\nY: "+this.targetPos.y);
-
-    // Now update mouse
-    this.mouse = {
-        x: this.targetPos.x,
-        y: this.targetPos.y
-    };
 
     // Reset queues
     this.nodeDestroyQueue = [];
@@ -236,6 +231,7 @@ QBot.prototype.decide = function(cell){
     }
 
     var actionNumber = this.agent.act(qList);
+    this.shouldUpdateQNetwork = true;
 
     var totalMass = 0;
     for ( var i = 0 ; i < this.cells.length ; i++)
@@ -247,7 +243,6 @@ QBot.prototype.decide = function(cell){
         x: targetLocation.x,
         y: targetLocation.y
     };
-    this.shouldUpdateQNetwork = true;
 
 };
 
@@ -398,19 +393,7 @@ QBot.prototype.getMassDifferenceRatio = function(cell, check){
 QBot.prototype.decodeAction = function(q){
     var speed;
     var direction;
-    switch (q%3){
-        case 0:
-            speed = 30;
-            break;
-        case 1:
-            speed = 90;
-            break;
-        case 2:
-            speed = 150;
-            break;
-        default :
-            break;
-    }
+    speed = 150;
     direction = ((Math.PI)/4)*(q%8);
     if ( direction > Math.PI){
         direction -= 2*Math.PI;
@@ -419,12 +402,12 @@ QBot.prototype.decodeAction = function(q){
     return new Action(direction, speed);
 };
 
-QBot.prototype.reward = function (cell) {
+QBot.prototype.positionValue = function (cell) {
     var rew = 0;
     if (this.previousDirectionArray != null) {
-        for (var j = 0; j < this.directionArray.length; j++) {
-            if (this.directionArray[j] != null && this.directionArray[j].length > 0) {
-                var nearby = this.findNearby(cell, this.directionArray[j], MAX_CELL_IN_DIRECTION);
+        for (var j = 0; j < this.previousDirectionArray.length; j++) {
+            if (this.previousDirectionArray[j] != null && this.previousDirectionArray[j].length > 0) {
+                var nearby = this.findNearby(cell, this.previousDirectionArray[j], MAX_CELL_IN_DIRECTION);
                 for (var i = 0; i < MAX_CELL_IN_DIRECTION; i++) {
                     if (nearby != null && i < nearby.length){
                         var distance = this.getDist(cell, nearby[i])/MAX_DISTANCE;
@@ -461,10 +444,9 @@ QBot.prototype.reward = function (cell) {
     for ( var i = 0 ; i < this.cells.length ; i++){
         currentMass += this.cells[i].mass;
     }
-    rew += (currentMass - this.previousMass);
+    rew += currentMass;
     this.previousMass = currentMass;
     this.previousDirectionArray = this.directionArray.slice();
-    console.log(rew+"\n");
     return rew;
 };
 
