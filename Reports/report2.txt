@@ -1,0 +1,45 @@
+
+States:
+	My Location
+		X
+		Y
+		Mass
+	8 Directions
+		Cell Type
+		Distance
+		Mass Ratio
+Actions:
+	Walk
+		8 Directions
+		3 Speed
+Test 1:
+
+Number of States: 27
+Number of Actions: 24
+Number of Hidden Layers: 3
+Number of Hidden Units: 20 5 1 
+
+Trial Reset Mass: 100
+
+Trial No: 1
+	Birth: Sat Apr 30 2016 17:08:01 GMT+0300 (EEST)
+	Death: Sat Apr 30 2016 18:32:45 GMT+0300 (EEST) with Size: 100.44985570013402
+
+Trial No: 2
+	Birth: Sat Apr 30 2016 18:32:45 GMT+0300 (EEST)
+	Death: Sat Apr 30 2016 19:12:23 GMT+0300 (EEST) with Size: 100.61466906059731
+
+Trial No: 3
+	Birth: Sat Apr 30 2016 19:12:23 GMT+0300 (EEST)
+	Death: Sat Apr 30 2016 20:11:39 GMT+0300 (EEST) with Size: 100.63117895836024
+
+Trial No: 4
+	Birth: Sat Apr 30 2016 20:11:39 GMT+0300 (EEST)
+	Death: Sat Apr 30 2016 21:18:36 GMT+0300 (EEST) with Size: 100.39253996010989
+
+Trial No: 5
+	Birth: Sat Apr 30 2016 21:18:36 GMT+0300 (EEST)
+	Death: Sat Apr 30 2016 21:59:23 GMT+0300 (EEST) with Size: 100.14926240375436
+
+Trial No: 6
+	Birth: Sat Apr 30 2016 21:59:23 GMT+0300 (EEST)
