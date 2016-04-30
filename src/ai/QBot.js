@@ -11,7 +11,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report1.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report2.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -23,7 +23,9 @@ const TRIAL_RESET_MASS = 100;
 const MAX_SPEED = 150.0;
 
 // Maximum Distance between two cells
-const MAX_DISTANCE = 1500.0;
+const MAX_DISTANCE = 1183;
+
+const MAX_MASS = 22500;
 
 // Maximum Angle :)
 const MAX_ANGLE = Math.PI;
@@ -40,6 +42,7 @@ function QBot() {
 
     // AI only
 
+    this.previousDirectionArray = null;
     this.directionArray = [];
     for ( var i = 0 ; i < DIRECTION_COUNT ; i++) {
         this.directionArray.push(new Array);
@@ -51,11 +54,10 @@ function QBot() {
     };
 
     this.previousMass = 10.0;
-    this.previousLenght = 1;
 
     // Initialize DQN Environment
     var env = {};
-    env.getNumStates = function() { return 2+(3*DIRECTION_COUNT);};
+    env.getNumStates = function() { return 3+(3*DIRECTION_COUNT);};
     env.getMaxNumActions = function() {return 24;};
     var spec = {
         update: 'qlearn',
@@ -67,7 +69,7 @@ function QBot() {
         learning_steps_per_iteration: 5,
         tderror_clamp: 1.0,
         num_hidden_layers: 3,
-        num_hidden_units: 56,
+        num_hidden_units: 20,
         activation_function: 3
     };
     this.agent;
@@ -83,7 +85,7 @@ function QBot() {
     // Report the important information to REPORT_FILE
     fs.appendFile(REPORT_FILE, "Test 1:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Layers: 3\nNumber of Hidden Units: "+spec.num_hidden_units+" "+Math.floor(spec.num_hidden_units/4)+" "+Math.floor(Math.floor(spec.num_hidden_units/4)/4)+" "+"\n");
     var date = new Date();
-    fs.appendFile(REPORT_FILE, "\nStates:\n\tMy Location\n\t\tX\n\t\tY\n\t"+ DIRECTION_COUNT +" Directions\n\t\tEnabler\n\t\tDirection\n\t\tSize Difference\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
+    fs.appendFile(REPORT_FILE, "\nStates:\n\tMy Location\n\t\tX\n\t\tY\n\t\tMass\n\t"+ DIRECTION_COUNT +" Directions\n\t\tCell Type\n\t\tDistance\n\t\tMass Ratio\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
     fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
     fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
@@ -126,15 +128,17 @@ QBot.prototype.update = function() {
     // Respawn if bot is dead
     if (this.cells.length <= 0) {
 
-        //this.agent.learn(-1);
-        //this.shouldUpdateQNetwork = false;
-        //var json = this.agent.toJSON();
-        //fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
+        if ( this.shouldUpdateQNetwork ){
+            this.agent.learn(-0.1*this.previousMass);
+            this.shouldUpdateQNetwork = false;
+            var json = this.agent.toJSON();
+            fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
+        }
 
-        // CommandList.list.killall(this.gameServer,0);
-        // var date = new Date();
-        //// Report the important information to REPORT_FILE
-        // fs.appendFile(REPORT_FILE, "\tDeath: "+date+" with Size: "+this.previousMass+"\n");
+         CommandList.list.killall(this.gameServer,0);
+         var date = new Date();
+        // Report the important information to REPORT_FILE
+         fs.appendFile(REPORT_FILE, "\tDeath: "+date+" with Size: "+this.previousMass+"\n");
 
         this.gameServer.gameMode.onPlayerSpawn(this.gameServer, this);
         if (this.cells.length == 0) {
@@ -165,7 +169,7 @@ QBot.prototype.update = function() {
     // Action
     if ( this.shouldUpdateQNetwork ){
 
-        this.agent.learn(this.reward());
+        this.agent.learn(this.reward(cell));
         this.shouldUpdateQNetwork = false;
         var json = this.agent.toJSON();
         fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
@@ -208,7 +212,7 @@ QBot.prototype.clearLists = function() {
 //Decides the action of player
 QBot.prototype.decide = function(cell){
 
-    var qList = [cell.position.x/6000, cell.position.y/6000];
+    var qList = [cell.position.x/6000, cell.position.y/6000, cell.mass/MAX_MASS];
 
     for ( var j = 0 ; j < this.directionArray.length ; j++){
         if ( this.directionArray[j] != null && this.directionArray[j].length > 0){
@@ -216,15 +220,18 @@ QBot.prototype.decide = function(cell){
             for ( var i = 0; i < MAX_CELL_IN_DIRECTION; i++){
                 if ( nearby != null && i < nearby.length){
                     var distance = this.getDist(cell, nearby[i]);
-                    var massDifference = this.getMassDifferenceRatio(cell, nearby[i]);
-                    var enabler = 1;
-                    qList.push(enabler, 1-(distance/MAX_DISTANCE), massDifference/MAX_MASS_DIFFERENCE_RATIO);
+                    var massRatio = (Math.min(nearby[i].mass,cell.mass)/Math.max(nearby[i].mass, cell.mass));
+                    if ( cell.mass < nearby[i].mass){
+                        massRatio = -massRatio;
+                    }
+
+                    qList.push(nearby[i].cellType/3.0,(distance/MAX_DISTANCE), massRatio);
                 }else{
-                    qList.push(-1,-1,0);
+                    qList.push(-1, -1, 0);
                 }
             }
         }else{
-            qList.push(-1,-1,0);
+            qList.push(-1, -1, 0);
         }
     }
 
@@ -270,8 +277,8 @@ QBot.prototype.getDist = function(cell, check) {
     var dy = Math.abs(check.position.y - cell.position.y);
 
     var distance = Math.sqrt(dx*dx + dy*dy) - ((cell.getSize()+check.getSize())/2);
-    if (distance < 0){
-        distance = 0;
+    if (distance < 0.0001){
+        distance = 0.0001;
     }
     return distance;
 };
@@ -380,7 +387,7 @@ QBot.prototype.getLocationFromAction = function(cell, action){
 
 // Returns the mass difference of two cells
 QBot.prototype.getMassDifferenceRatio = function(cell, check){
-    var dMass = cell.mass/check.mass;
+    var dMass = check.mass/cell.mass;
     if (dMass > MAX_MASS_DIFFERENCE_RATIO)
         dMass = MAX_MASS_DIFFERENCE_RATIO;
     //console.log(dMass);
@@ -412,16 +419,52 @@ QBot.prototype.decodeAction = function(q){
     return new Action(direction, speed);
 };
 
-QBot.prototype.reward = function (){
+QBot.prototype.reward = function (cell) {
+    var rew = 0;
+    if (this.previousDirectionArray != null) {
+        for (var j = 0; j < this.directionArray.length; j++) {
+            if (this.directionArray[j] != null && this.directionArray[j].length > 0) {
+                var nearby = this.findNearby(cell, this.directionArray[j], MAX_CELL_IN_DIRECTION);
+                for (var i = 0; i < MAX_CELL_IN_DIRECTION; i++) {
+                    if (nearby != null && i < nearby.length){
+                        var distance = this.getDist(cell, nearby[i])/MAX_DISTANCE;
+                        switch ( nearby[i].cellType){
+                            case 0:
+                                if ( cell.mass > nearby[i].mass * 1.33 ){
+                                    rew += 0.1*(nearby[i].mass*(1-distance));
+                                }else if ( nearby[i].mass > cell.mass * 1.33){
+                                    rew -= 0.1*(nearby[i].mass*(1-distance));
+                                }
+                                break;
+                            case 1:
+                                rew += 0.1*(nearby[i].mass*(1-distance));
+                                break;
+                            case 2:
+                                if ( cell.mass > nearby[i].mass * 1.33 ){
+                                    rew -= 0.1*(cell.mass*(1-distance));
+                                }
+                                break;
+                            case 3:
+                                if ( cell.mass > nearby[i].mass * 1.33 ){
+                                    rew += 0.1*(nearby[i].mass*(1-distance));
+                                }
+                                break;
+                        }
 
-    //this.previousLength = this.cells.length;
+                    }
+                }
+            }
+        }
+    }
 
     var currentMass = 0;
     for ( var i = 0 ; i < this.cells.length ; i++){
         currentMass += this.cells[i].mass;
     }
-    var rew = (currentMass - this.previousMass);
+    rew += (currentMass - this.previousMass);
     this.previousMass = currentMass;
+    this.previousDirectionArray = this.directionArray.slice();
+    console.log(rew+"\n");
     return rew;
 };
 
