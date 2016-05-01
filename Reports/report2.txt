@@ -1,0 +1,115 @@
+Test 2: No Enemy, No Virus
+
+Number of States: 2
+Number of Actions: 24
+Number of Hidden Units: 6
+
+States:
+	1 Food
+		Direction
+		Distance
+Actions:
+	Walk
+		8 Directions
+		3 Speed
+
+Trial Reset Mass: 100
+
+Trial No: 1
+	Birth: Sun May 01 2016 17:11:39 GMT+0300 (EEST)
+	Death: Sun May 01 2016 18:11:09 GMT+0300 (EEST) because of NO FOOD, SIZE:19.16380930308128
+
+Trial No: 2
+	Birth: Sun May 01 2016 18:11:09 GMT+0300 (EEST)
+	Death: Sun May 01 2016 18:18:52 GMT+0300 (EEST) because of NO FOOD, SIZE:27.87711959561198
+
+Trial No: 3
+	Birth: Sun May 01 2016 18:18:52 GMT+0300 (EEST)
+	Death: Sun May 01 2016 18:20:28 GMT+0300 (EEST) because of NO FOOD, SIZE:15.569962363168678
+
+Trial No: 4
+	Birth: Sun May 01 2016 18:20:28 GMT+0300 (EEST)
+	Death: Sun May 01 2016 18:26:15 GMT+0300 (EEST) because of NO FOOD, SIZE:27.585886532890108
+
+Trial No: 5
+	Birth: Sun May 01 2016 18:26:15 GMT+0300 (EEST)
+	Death: Sun May 01 2016 18:38:28 GMT+0300 (EEST) because of NO FOOD, SIZE:34.448703708638135
+
+Trial No: 6
+	Birth: Sun May 01 2016 18:38:28 GMT+0300 (EEST)
+	Death: Sun May 01 2016 18:42:14 GMT+0300 (EEST) because of NO FOOD, SIZE:27.946518967528103
+
+Trial No: 7
+	Birth: Sun May 01 2016 18:42:14 GMT+0300 (EEST)
+	Death: Sun May 01 2016 18:43:24 GMT+0300 (EEST) because of NO FOOD, SIZE:9.616468962066792
+
+Trial No: 8
+	Birth: Sun May 01 2016 18:43:24 GMT+0300 (EEST)
+	Death: Sun May 01 2016 19:23:26 GMT+0300 (EEST) because of NO FOOD, SIZE:10.462744107430046
+
+Trial No: 9
+	Birth: Sun May 01 2016 19:23:26 GMT+0300 (EEST)
+	Death: Sun May 01 2016 19:23:33 GMT+0300 (EEST) because of NO FOOD, SIZE:9.858996444389817
+
+Trial No: 10
+	Birth: Sun May 01 2016 19:23:33 GMT+0300 (EEST)
+	Death: Sun May 01 2016 19:35:14 GMT+0300 (EEST) because of NO FOOD, SIZE:28.70198643816781
+
+Trial No: 11
+	Birth: Sun May 01 2016 19:35:14 GMT+0300 (EEST)
+	Death: Sun May 01 2016 19:47:23 GMT+0300 (EEST) because of NO FOOD, SIZE:40.04738934198822
+
+Trial No: 12
+	Birth: Sun May 01 2016 19:47:23 GMT+0300 (EEST)
+	Death: Sun May 01 2016 20:04:33 GMT+0300 (EEST) because of NO FOOD, SIZE:45.9857734729815
+
+Trial No: 13
+	Birth: Sun May 01 2016 20:04:33 GMT+0300 (EEST)
+	Death: Sun May 01 2016 20:07:55 GMT+0300 (EEST) because of NO FOOD, SIZE:25.200540487831393
+
+Trial No: 14
+	Birth: Sun May 01 2016 20:07:55 GMT+0300 (EEST)
+	Death: Sun May 01 2016 20:13:19 GMT+0300 (EEST) because of NO FOOD, SIZE:32.175001657283424
+
+Trial No: 15
+	Birth: Sun May 01 2016 20:13:19 GMT+0300 (EEST)
+	Death: Sun May 01 2016 20:20:47 GMT+0300 (EEST) because of NO FOOD, SIZE:26.043236708144732
+
+Trial No: 16
+	Birth: Sun May 01 2016 20:20:47 GMT+0300 (EEST)
+	Death: Sun May 01 2016 20:25:29 GMT+0300 (EEST) because of NO FOOD, SIZE:30.806332672158177
+
+Trial No: 17
+	Birth: Sun May 01 2016 20:25:29 GMT+0300 (EEST)
+	Death: Sun May 01 2016 20:31:23 GMT+0300 (EEST) because of NO FOOD, SIZE:41.18627835398972
+
+Trial No: 18
+	Birth: Sun May 01 2016 20:31:23 GMT+0300 (EEST)
+	Death: Sun May 01 2016 20:40:59 GMT+0300 (EEST) because of NO FOOD, SIZE:55.63994997952374
+
+Trial No: 19
+	Birth: Sun May 01 2016 20:40:59 GMT+0300 (EEST)
+	Death: Sun May 01 2016 21:00:18 GMT+0300 (EEST) because of NO FOOD, SIZE:9.533883127450403
+
+Trial No: 20
+	Birth: Sun May 01 2016 21:00:18 GMT+0300 (EEST)
+	Death: Sun May 01 2016 21:03:52 GMT+0300 (EEST) because of NO FOOD, SIZE:16.562155473485365
+
+Trial No: 21
+	Birth: Sun May 01 2016 21:03:52 GMT+0300 (EEST)
+	Death: Sun May 01 2016 21:04:26 GMT+0300 (EEST) because of NO FOOD, SIZE:11.244369575849992
+
+Trial No: 22
+	Birth: Sun May 01 2016 21:04:26 GMT+0300 (EEST)
+	Death: Sun May 01 2016 21:05:29 GMT+0300 (EEST) because of NO FOOD, SIZE:21.77728187891071
+
+Trial No: 23
+	Birth: Sun May 01 2016 21:05:30 GMT+0300 (EEST)
+	Death: Sun May 01 2016 21:06:30 GMT+0300 (EEST) because of NO FOOD, SIZE:22.14620119939754
+
+Trial No: 24
+	Birth: Sun May 01 2016 21:06:30 GMT+0300 (EEST)
+	Death: Sun May 01 2016 21:08:59 GMT+0300 (EEST) because of NO FOOD, SIZE:31.279744246534552
+
+Trial No: 25
+	Birth: Sun May 01 2016 21:08:59 GMT+0300 (EEST)
