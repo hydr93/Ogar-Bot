@@ -1,0 +1,45 @@
+Test 4: No Virus, No Enemy:
+
+Number of States: 72
+Number of Actions: 8
+Number of Hidden Layers: 3
+Number of Hidden Units: 25 6 1 
+
+States:
+	My Location
+		X
+		Y
+		Mass
+	8 Directions
+		Cell Type
+		Distance
+		Mass Ratio
+Actions:
+	Walk
+		8 Directions
+		3 Speed
+
+Trial Reset Mass: 100
+
+Trial No: 1
+	Birth: Sun May 01 2016 02:09:01 GMT+0300 (EEST)
+	Death: Sun May 01 2016 02:30:56 GMT+0300 (EEST) with Size: 10
+
+Trial No: 2
+	Birth: Sun May 01 2016 02:30:56 GMT+0300 (EEST)
+	Death: Sun May 01 2016 02:40:21 GMT+0300 (EEST) with Size: 10
+
+Trial No: 3
+	Birth: Sun May 01 2016 02:40:21 GMT+0300 (EEST)
+	Death: Sun May 01 2016 03:02:02 GMT+0300 (EEST) with Size: 10
+
+Trial No: 4
+	Birth: Sun May 01 2016 03:02:02 GMT+0300 (EEST)
+	Death: Sun May 01 2016 03:24:09 GMT+0300 (EEST) with Size: 10
+
+Trial No: 5
+	Birth: Sun May 01 2016 03:24:09 GMT+0300 (EEST)
+	Death: Sun May 01 2016 03:33:51 GMT+0300 (EEST) with Size: 10
+
+Trial No: 6
+	Birth: Sun May 01 2016 03:33:51 GMT+0300 (EEST)

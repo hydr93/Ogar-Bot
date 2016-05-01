@@ -11,7 +11,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report3.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report4.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -33,7 +33,7 @@ const MAX_ANGLE = Math.PI;
 // Maximum Mass Difference between two cells.
 const MAX_MASS_DIFFERENCE_RATIO = 20;
 
-const MAX_CELL_IN_DIRECTION = 1;
+const MAX_CELL_IN_DIRECTION = 3;
 const DIRECTION_COUNT = 8;
 
 function QBot() {
@@ -53,11 +53,12 @@ function QBot() {
         y: 0
     };
 
+    this.previousPositionValue = 0;
     this.previousMass = 10.0;
 
     // Initialize DQN Environment
     var env = {};
-    env.getNumStates = function() { return 3+(3*DIRECTION_COUNT);};
+    env.getNumStates = function() { return (3*MAX_CELL_IN_DIRECTION*DIRECTION_COUNT);};
     env.getMaxNumActions = function() {return 8;};
     var spec = {
         update: 'qlearn',
@@ -65,11 +66,11 @@ function QBot() {
         epsilon: 0.2,
         alpha: 0.1,
         experience_add_every: 5,
-        experience_size: 5000,
+        experience_size: 10000,
         learning_steps_per_iteration: 5,
         tderror_clamp: 1.0,
         num_hidden_layers: 3,
-        num_hidden_units: 20,
+        num_hidden_units: 25,
         activation_function: 3
     };
     this.agent;
@@ -83,7 +84,7 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 1:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Layers: 3\nNumber of Hidden Units: "+spec.num_hidden_units+" "+Math.floor(spec.num_hidden_units/4)+" "+Math.floor(Math.floor(spec.num_hidden_units/4)/4)+" "+"\n");
+    fs.appendFile(REPORT_FILE, "Test 4: No Virus, No Enemy:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Layers: 3\nNumber of Hidden Units: "+spec.num_hidden_units+" "+Math.floor(spec.num_hidden_units/4)+" "+Math.floor(Math.floor(spec.num_hidden_units/4)/4)+" "+"\n");
     var date = new Date();
     fs.appendFile(REPORT_FILE, "\nStates:\n\tMy Location\n\t\tX\n\t\tY\n\t\tMass\n\t"+ DIRECTION_COUNT +" Directions\n\t\tCell Type\n\t\tDistance\n\t\tMass Ratio\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
     fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
@@ -189,6 +190,9 @@ QBot.prototype.update = function() {
         };
     }
 
+
+    this.previousPositionValue = this.positionValue(cell);
+
     // Reset queues
     this.nodeDestroyQueue = [];
     this.nodeAdditionQueue = [];
@@ -207,8 +211,8 @@ QBot.prototype.clearLists = function() {
 //Decides the action of player
 QBot.prototype.decide = function(cell){
 
-    var qList = [cell.position.x/6000, cell.position.y/6000, cell.mass/MAX_MASS];
-
+    //var qList = [cell.position.x/6000, cell.position.y/6000, cell.mass/MAX_MASS];
+    var qList = [];
     for ( var j = 0 ; j < this.directionArray.length ; j++){
         if ( this.directionArray[j] != null && this.directionArray[j].length > 0){
             var nearby = this.findNearby(cell, this.directionArray[j], MAX_CELL_IN_DIRECTION);
@@ -222,11 +226,13 @@ QBot.prototype.decide = function(cell){
 
                     qList.push(nearby[i].cellType/3.0,(distance/MAX_DISTANCE), massRatio);
                 }else{
-                    qList.push(-1, -1, 0);
+                    qList.push(0.33, 1, 1);
                 }
             }
         }else{
-            qList.push(-1, -1, 0);
+            for ( var i = 0; i < MAX_CELL_IN_DIRECTION; i++) {
+                qList.push(0.33, 1, 1);
+            }
         }
     }
 
@@ -402,34 +408,34 @@ QBot.prototype.decodeAction = function(q){
     return new Action(direction, speed);
 };
 
-QBot.prototype.positionValue = function (cell) {
-    var rew = 0;
-    if (this.previousDirectionArray != null) {
-        for (var j = 0; j < this.previousDirectionArray.length; j++) {
-            if (this.previousDirectionArray[j] != null && this.previousDirectionArray[j].length > 0) {
-                var nearby = this.findNearby(cell, this.previousDirectionArray[j], MAX_CELL_IN_DIRECTION);
+QBot.prototype.positionValue = function(cell){
+    var value = 0;
+    if (this.directionArray != null) {
+        for (var j = 0; j < this.directionArray.length; j++) {
+            if (this.directionArray[j] != null && this.directionArray[j].length > 0) {
+                var nearby = this.findNearby(cell, this.directionArray[j], MAX_CELL_IN_DIRECTION);
                 for (var i = 0; i < MAX_CELL_IN_DIRECTION; i++) {
                     if (nearby != null && i < nearby.length){
                         var distance = this.getDist(cell, nearby[i])/MAX_DISTANCE;
                         switch ( nearby[i].cellType){
                             case 0:
                                 if ( cell.mass > nearby[i].mass * 1.33 ){
-                                    rew += 0.1*(nearby[i].mass*(1-distance));
+                                    value += (nearby[i].mass*(1-distance));
                                 }else if ( nearby[i].mass > cell.mass * 1.33){
-                                    rew -= 0.1*(nearby[i].mass*(1-distance));
+                                    value -= (nearby[i].mass*(1-distance));
                                 }
                                 break;
                             case 1:
-                                rew += 0.1*(nearby[i].mass*(1-distance));
+                                value += 0.1*(nearby[i].mass*(1-distance));
                                 break;
                             case 2:
                                 if ( cell.mass > nearby[i].mass * 1.33 ){
-                                    rew -= 0.1*(cell.mass*(1-distance));
+                                    value -= (cell.mass*(1-distance));
                                 }
                                 break;
                             case 3:
                                 if ( cell.mass > nearby[i].mass * 1.33 ){
-                                    rew += 0.1*(nearby[i].mass*(1-distance));
+                                    value += (nearby[i].mass*(1-distance));
                                 }
                                 break;
                         }
@@ -439,15 +445,17 @@ QBot.prototype.positionValue = function (cell) {
             }
         }
     }
-
-    var currentMass = 0;
     for ( var i = 0 ; i < this.cells.length ; i++){
-        currentMass += this.cells[i].mass;
+        value += this.cells[i].mass;
     }
-    rew += currentMass;
-    this.previousMass = currentMass;
-    this.previousDirectionArray = this.directionArray.slice();
-    return rew;
+    return value;
+};
+
+QBot.prototype.reward = function (cell) {
+    var currentPositionValue = this.positionValue(cell);
+    var result = currentPositionValue-this.previousPositionValue;
+    console.log(result);
+    return result;
 };
 
 // Necessary Classes
