@@ -11,10 +11,10 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report13.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report14.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
-var trial = 5;
+var trial = 24;
 
 // Server will be restarted when the cell's mass is equal to this.
 const TRIAL_RESET_MASS = 100;
@@ -132,7 +132,7 @@ QBot.prototype.update = function() {
 
         if ( this.shouldUpdateQNetwork ){
 
-            this.agent.learn(this.reward());
+            this.agent.learn(1);
             this.shouldUpdateQNetwork = false;
             var json = this.agent.toJSON();
             fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
@@ -410,45 +410,7 @@ QBot.prototype.getDirectionFromLocation = function(cell, check){
     var dy = check.position.y - cell.position.y;
     var dx = check.position.x - cell.position.x;
 
-    var angle = Math.atan2(dx, dy);
-
-    //console.log("Delta X: "+deltaX+"\nDelta Y: "+deltaY+"\nAngle: "+(angle*180/Math.PI));
-
-    //console.log("\tAngle: "+(angle*180/Math.PI));
-
-    var direction;
-    if ( angle < 0 )
-        angle += 2*Math.PI;
-
-
-    if ( angle < Math.PI/8 || angle >= (Math.PI*15)/8 ){
-        direction = 0;
-        //console.log("S");
-    }else if ( angle >= (Math.PI)/8 && angle < (Math.PI*3)/8 ){
-        direction = (Math.PI*2)/8;
-        //console.log("SE");
-    }else if ( angle >= (Math.PI*3)/8 && angle < (Math.PI*5)/8 ){
-        direction = (Math.PI*4)/8;
-        //console.log("E");
-    }else if ( angle >= (Math.PI*5)/8 && angle < (Math.PI*7)/8 ){
-        direction = (Math.PI*6)/8;
-        //console.log("NE");
-    }else if ( angle >= (Math.PI*7)/8 && angle < (Math.PI*9)/8 ){
-        direction = (Math.PI*8)/8;
-        //console.log("N");
-    }else if ( angle >= (Math.PI*9)/8 && angle < (Math.PI*11)/8 ){
-        direction = (Math.PI*10)/8;
-        //console.log("NW");
-    }else if ( angle >= (Math.PI*11)/8 && angle < (Math.PI*13)/8 ){
-        direction = (Math.PI*12)/8;
-        //console.log("W");
-    }else if ( angle >= (Math.PI*13)/8 && angle < (Math.PI*15)/8 ){
-        direction = (Math.PI*14)/8;
-        //console.log("SW");
-    }
-    if ( direction > Math.PI){
-        direction -= 2*Math.PI;
-    }
+    var direction = Math.atan2(dx, dy);
     return direction;
 };
 
