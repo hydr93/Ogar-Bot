@@ -11,7 +11,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report4.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report5.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -33,7 +33,7 @@ const MAX_ANGLE = Math.PI;
 // Maximum Mass Difference between two cells.
 const MAX_MASS_DIFFERENCE_RATIO = 20;
 
-const MAX_CELL_IN_DIRECTION = 3;
+const MAX_CELL_IN_DIRECTION = 1;
 const DIRECTION_COUNT = 8;
 
 function QBot() {
@@ -42,7 +42,6 @@ function QBot() {
 
     // AI only
 
-    this.previousDirectionArray = null;
     this.directionArray = [];
     for ( var i = 0 ; i < DIRECTION_COUNT ; i++) {
         this.directionArray.push(new Array);
@@ -58,7 +57,7 @@ function QBot() {
 
     // Initialize DQN Environment
     var env = {};
-    env.getNumStates = function() { return (3*MAX_CELL_IN_DIRECTION*DIRECTION_COUNT);};
+    env.getNumStates = function() { return (1*MAX_CELL_IN_DIRECTION*DIRECTION_COUNT);};
     env.getMaxNumActions = function() {return 8;};
     var spec = {
         update: 'qlearn',
@@ -70,8 +69,8 @@ function QBot() {
         learning_steps_per_iteration: 5,
         tderror_clamp: 1.0,
         num_hidden_layers: 3,
-        num_hidden_units: 25,
-        activation_function: 3
+        num_hidden_units: 20,
+        activation_function: 1
     };
     this.agent;
     try {
@@ -84,7 +83,7 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 4: No Virus, No Enemy:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Layers: 3\nNumber of Hidden Units: "+spec.num_hidden_units+" "+Math.floor(spec.num_hidden_units/4)+" "+Math.floor(Math.floor(spec.num_hidden_units/4)/4)+" "+"\n");
+    fs.appendFile(REPORT_FILE, "Test 5: No Virus, No Enemy:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Layers: 3\nNumber of Hidden Units: "+spec.num_hidden_units+" "+Math.floor(spec.num_hidden_units/4)+" "+Math.floor(Math.floor(spec.num_hidden_units/4)/4)+" "+"\n");
     var date = new Date();
     fs.appendFile(REPORT_FILE, "\nStates:\n\tMy Location\n\t\tX\n\t\tY\n\t\tMass\n\t"+ DIRECTION_COUNT +" Directions\n\t\tCell Type\n\t\tDistance\n\t\tMass Ratio\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
     fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
@@ -224,14 +223,17 @@ QBot.prototype.decide = function(cell){
                         massRatio = -massRatio;
                     }
 
-                    qList.push(nearby[i].cellType/3.0,(distance/MAX_DISTANCE), massRatio);
+                    //qList.push(nearby[i].cellType/3.0,(distance/MAX_DISTANCE), massRatio);
+                    qList.push(distance/MAX_DISTANCE)
                 }else{
-                    qList.push(0.33, 1, 1);
+                    //qList.push(0.33, 1, 1);
+                    qList.push(1);
                 }
             }
         }else{
             for ( var i = 0; i < MAX_CELL_IN_DIRECTION; i++) {
-                qList.push(0.33, 1, 1);
+                //qList.push(0.33, 1, 1);
+                qList.push(1);
             }
         }
     }
