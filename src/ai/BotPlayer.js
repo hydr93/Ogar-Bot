@@ -4,6 +4,7 @@ var Vector = require('vector2-node');
 
 function BotPlayer() {
     PlayerTracker.apply(this, Array.prototype.slice.call(arguments));
+    this.mass = 50;
     //this.color = gameServer.getRandomColor();
 
     this.splitCooldown = 0;

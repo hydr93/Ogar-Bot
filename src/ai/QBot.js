@@ -11,7 +11,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report17.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report18.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -88,7 +88,7 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 17, No Food, No Enemy:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    fs.appendFile(REPORT_FILE, "Test 18, No Split:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
     var date = new Date();
     fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ NEARBY_NO +" Nearby\n\t\tDanger Level\n\t\tDirection\n\t\tDistance\nActions:\n\tWalk\n\t\t"+DIRECTION_COUNT+" Directions\n");
     fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
@@ -135,7 +135,13 @@ QBot.prototype.update = function() {
 
         if ( this.shouldUpdateQNetwork ){
 
-            this.agent.learn(1);
+            if (this.previousMass > 99){
+                this.agent.learn();
+            }else{
+                this.agent.learn(-1*this.previousMass);
+                console.log("Eaten by Enemy! Lost "+this.previousMass+" Mass");
+            }
+            this.previousMass = 10.0;
             this.shouldUpdateQNetwork = false;
             var json = this.agent.toJSON();
             fs.writeFile(JSON_FILE, JSON.stringify(json, null, 4));
@@ -246,8 +252,6 @@ QBot.prototype.decide = function(cell) {
             qList.push(danger,stateVector.direction / MAX_ANGLE, stateVector.distance / MAX_DISTANCE);
         }
     }
-
-    console.log(qList);
 
     //// Find Nearby N Foods
     //var nearbyFoods = this.findNearby(cell,this.food,FOOD_NO);
@@ -418,7 +422,7 @@ QBot.prototype.updateLists = function(cell){
                 this.nearbyNodes.push(check);
                 break;
             case 2: // Virus
-                if (!check.isMotherCell && 1.33*check.mass > cell.mass) {
+                if (!check.isMotherCell && 1.33*cell.mass > check.mass) {
                     this.virus.push(check);
                     this.nearbyNodes.push(check);
                 } // Only real viruses! No mother cells
@@ -542,7 +546,7 @@ QBot.prototype.getDangerLevel = function(cell, check){
             danger = 0;
             break;
         case 2: // Virus
-            if (!check.isMotherCell && 1.33*check.mass > cell.mass) {
+            if (!check.isMotherCell && 1.33*cell.mass > check.mass) {
                 danger = 1;
             }
             break;
