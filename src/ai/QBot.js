@@ -11,13 +11,13 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report15.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report16.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
-var trial = 24;
+var trial = 70;
 
 // Server will be restarted when the cell's mass is equal to this.
-const TRIAL_RESET_MASS = 100;
+const TRIAL_RESET_MASS = 1000;
 
 // Maximum Speed a cell can have
 const MAX_SPEED = 150.0;
@@ -65,14 +65,14 @@ function QBot() {
     var spec = {
         update: 'qlearn',
         gamma: 0.9,
-        epsilon: 0.2,
-        alpha: 0.1,
+        epsilon: 0.02,
+        alpha: 0.01,
         experience_add_every: 10,
         experience_size: 5000,
         learning_steps_per_iteration: 20,
         tderror_clamp: 1.0,
         num_hidden_units: 6,
-        activation_function: 3
+        activation_function: 1
     };
     this.agent;
     try {
@@ -85,10 +85,10 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 12, No Food, No Enemy:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    //fs.appendFile(REPORT_FILE, "Test 16, No Food, No Enemy, Trials with Tanh activation function:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
     var date = new Date();
-    fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ FOOD_NO +" Food\n\t\tEnabler\n\t\tDifference X\n\t\tDifference Y\n\t"+ VIRUS_NO +" Virus\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ THREAT_NO +" Threat\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ PREY_NO +" Prey\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
-    fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
+    //fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ FOOD_NO +" Food\n\t\tDirection\n\t\tDistance\n\t"+ VIRUS_NO +" Virus\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ THREAT_NO +" Threat\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\n\t"+ PREY_NO +" Prey\n\t\tEnabler\n\t\tDirection\n\t\tDistance\n\t\tSize\nActions:\n\tWalk\n\t\t8 Directions\n\t\t3 Speed\n");
+    //fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
     fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
     this.shouldUpdateQNetwork = false;
@@ -230,19 +230,21 @@ QBot.prototype.decide = function(cell) {
         return;
     }
     var qList = []; //[1-(Math.abs(cell.position.x - 3000)/3000.0), 1-(Math.abs(cell.position.y - 3000)/3000.0)];
-    for ( var i = 0; i < FOOD_NO; i++){
-        if ( nearbyFoods != null && i < nearbyFoods.length ){
+    for ( var i = 0; i < FOOD_NO; i++) {
+        if (nearbyFoods != null && i < nearbyFoods.length) {
             var foodStateVector = this.getStateVectorFromLocation(cell, nearbyFoods[i]);
             //var foodDistanceVector = this.getDistanceVector(cell,nearbyFoods[i]);
             //var foodEnabler = 1;
             //qList.push((foodDistanceVector.x/MAX_X), (foodDistanceVector.y/MAX_Y));
-            qList.push(foodStateVector.direction/MAX_ANGLE, foodStateVector.distance/MAX_DISTANCE);
+            qList.push(foodStateVector.direction / MAX_ANGLE, foodStateVector.distance / MAX_DISTANCE);
         }
     }
-    //console.log(qList);
+
     if ( qList.length == 0){
         return;
     }
+
+    //console.log(qList);
 
     //// Find Nearby N Viruses
     //var nearbyViruses = this.findNearby(cell,this.virus,VIRUS_NO);
@@ -494,7 +496,7 @@ QBot.prototype.reward = function (){
     var result = currentMass - this.previousMass;
     this.previousMass = currentMass;
     return result;
-}
+};
 
 // Necessary Classes
 

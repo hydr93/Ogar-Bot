@@ -1,0 +1,224 @@
+Test 16, No Food, No Enemy, Trials with Tanh activation function:
+
+Number of States: 2
+Number of Actions: 24
+Number of Hidden Units: 6
+
+States:
+	1 Food
+		Direction
+		Distance
+	0 Virus
+		Enabler
+		Direction
+		Distance
+		Size
+	0 Threat
+		Enabler
+		Direction
+		Distance
+		Size
+	0 Prey
+		Enabler
+		Direction
+		Distance
+		Size
+Actions:
+	Walk
+		8 Directions
+		3 Speed
+
+Trial Reset Mass: 100
+
+Trial No: 24
+	Birth: Mon May 02 2016 17:16:54 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:24:28 GMT+0300 (EEST) with Size: 99.38294948792776
+
+Trial No: 25
+	Birth: Mon May 02 2016 17:24:28 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:25:21 GMT+0300 (EEST) with Size: 34.78796337962941
+
+Trial No: 26
+	Birth: Mon May 02 2016 17:25:21 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:27:45 GMT+0300 (EEST) with Size: 99.33810076695435
+
+Trial No: 27
+	Birth: Mon May 02 2016 17:27:45 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:31:14 GMT+0300 (EEST) with Size: 74.79016859695783
+
+Trial No: 28
+	Birth: Mon May 02 2016 17:31:14 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:33:44 GMT+0300 (EEST) with Size: 99.1733940456003
+
+Trial No: 29
+	Birth: Mon May 02 2016 17:33:44 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:36:24 GMT+0300 (EEST) with Size: 99.312967820075
+
+Trial No: 30
+	Birth: Mon May 02 2016 17:36:24 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:36:42 GMT+0300 (EEST) with Size: 30.281649152507548
+
+Trial No: 31
+	Birth: Mon May 02 2016 17:36:42 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:36:53 GMT+0300 (EEST) with Size: 17.692362847718602
+
+Trial No: 32
+	Birth: Mon May 02 2016 17:36:53 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:37:59 GMT+0300 (EEST) with Size: 99.27150233533308
+
+Trial No: 33
+	Birth: Mon May 02 2016 17:37:59 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:38:45 GMT+0300 (EEST) with Size: 99.01774727440782
+
+Trial No: 34
+	Birth: Mon May 02 2016 17:38:45 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:39:54 GMT+0300 (EEST) with Size: 99.59515197138009
+
+Trial No: 35
+	Birth: Mon May 02 2016 17:39:54 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:41:15 GMT+0300 (EEST) with Size: 99.02660193864806
+
+Trial No: 36
+	Birth: Mon May 02 2016 17:41:15 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:41:35 GMT+0300 (EEST) with Size: 28.178449242991228
+
+Trial No: 37
+	Birth: Mon May 02 2016 17:41:35 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:41:45 GMT+0300 (EEST) with Size: 15.723659804362493
+
+Trial No: 38
+	Birth: Mon May 02 2016 17:41:45 GMT+0300 (EEST)
+	Death: Mon May 02 2016 17:43:23 GMT+0300 (EEST) with Size: 99.52402349338465
+
+Trial No: 39
+	Birth: Mon May 02 2016 17:43:23 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:01:43 GMT+0300 (EEST) with Size: 99.83319487179976
+
+Trial No: 40
+	Birth: Mon May 02 2016 18:01:43 GMT+0300 (EEST)
+
+Trial No: 40
+	Birth: Mon May 02 2016 18:02:25 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:03:43 GMT+0300 (EEST) with Size: 99.86401974492851
+
+Trial No: 41
+	Birth: Mon May 02 2016 18:03:43 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:05:09 GMT+0300 (EEST) with Size: 99.42581763634826
+
+Trial No: 42
+	Birth: Mon May 02 2016 18:05:09 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:06:07 GMT+0300 (EEST) with Size: 99.26161956424752
+
+Trial No: 43
+	Birth: Mon May 02 2016 18:06:07 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:07:10 GMT+0300 (EEST) with Size: 99.01649861088332
+
+Trial No: 44
+	Birth: Mon May 02 2016 18:07:10 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:08:37 GMT+0300 (EEST) with Size: 66.03107120800588
+
+Trial No: 45
+	Birth: Mon May 02 2016 18:08:37 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:09:32 GMT+0300 (EEST) with Size: 99.3019144896951
+
+Trial No: 46
+	Birth: Mon May 02 2016 18:09:32 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:09:48 GMT+0300 (EEST) with Size: 32.38629257526116
+
+Trial No: 47
+	Birth: Mon May 02 2016 18:09:48 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:10:35 GMT+0300 (EEST) with Size: 99.1737724074566
+
+Trial No: 48
+	Birth: Mon May 02 2016 18:10:35 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:11:39 GMT+0300 (EEST) with Size: 99.72987308416778
+
+Trial No: 49
+	Birth: Mon May 02 2016 18:11:39 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:12:21 GMT+0300 (EEST) with Size: 99.42193867920706
+
+Trial No: 50
+	Birth: Mon May 02 2016 18:12:21 GMT+0300 (EEST)
+
+Trial No: 51
+	Birth: Mon May 02 2016 18:13:22 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:13:22 GMT+0300 (EEST) with Size: 99.35610090118398
+
+Trial No: 52
+	Birth: Mon May 02 2016 18:14:40 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:14:40 GMT+0300 (EEST) with Size: 99.24598794625571
+	Death: Mon May 02 2016 18:14:54 GMT+0300 (EEST) with Size: 18.59110967572872
+
+Trial No: 53
+	Birth: Mon May 02 2016 18:14:54 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:15:30 GMT+0300 (EEST) with Size: 99.2389842318289
+
+Trial No: 54
+	Birth: Mon May 02 2016 18:15:30 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:16:23 GMT+0300 (EEST) with Size: 99.03427582988681
+
+Trial No: 55
+	Birth: Mon May 02 2016 18:16:23 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:17:10 GMT+0300 (EEST) with Size: 75.26066255023491
+
+Trial No: 56
+	Birth: Mon May 02 2016 18:17:10 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:18:04 GMT+0300 (EEST) with Size: 99.4000014486278
+
+Trial No: 57
+	Birth: Mon May 02 2016 18:18:04 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:18:59 GMT+0300 (EEST) with Size: 99.12796826036603
+
+Trial No: 58
+	Birth: Mon May 02 2016 18:18:59 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:21:23 GMT+0300 (EEST) with Size: 99.1366170529743
+
+Trial No: 59
+	Birth: Mon May 02 2016 18:21:23 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:22:07 GMT+0300 (EEST) with Size: 99.53234029542453
+
+Trial No: 60
+	Birth: Mon May 02 2016 18:22:07 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:23:11 GMT+0300 (EEST) with Size: 99.06560668568062
+
+Trial No: 61
+	Birth: Mon May 02 2016 18:23:11 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:24:51 GMT+0300 (EEST) with Size: 99.63280146470254
+
+Trial No: 62
+	Birth: Mon May 02 2016 18:24:51 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:25:22 GMT+0300 (EEST) with Size: 99.57977838717962
+
+Trial No: 63
+	Birth: Mon May 02 2016 18:25:22 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:26:07 GMT+0300 (EEST) with Size: 99.4208382490123
+
+Trial No: 64
+	Birth: Mon May 02 2016 18:26:07 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:27:14 GMT+0300 (EEST) with Size: 99.8017029696649
+
+Trial No: 65
+	Birth: Mon May 02 2016 18:27:14 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:27:56 GMT+0300 (EEST) with Size: 82.93007592899603
+
+Trial No: 66
+	Birth: Mon May 02 2016 18:27:56 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:28:47 GMT+0300 (EEST) with Size: 99.41035128467598
+
+Trial No: 67
+	Birth: Mon May 02 2016 18:28:47 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:29:42 GMT+0300 (EEST) with Size: 99.75199381046572
+
+Trial No: 68
+	Birth: Mon May 02 2016 18:29:42 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:30:30 GMT+0300 (EEST) with Size: 99.64550587423079
+
+Trial No: 69
+	Birth: Mon May 02 2016 18:30:30 GMT+0300 (EEST)
+	Death: Mon May 02 2016 18:31:37 GMT+0300 (EEST) with Size: 99.07665167888024
+
+Trial No: 70
+	Birth: Mon May 02 2016 18:31:37 GMT+0300 (EEST)
+
+Trial No: 70
+	Birth: Mon May 02 2016 18:32:04 GMT+0300 (EEST)
