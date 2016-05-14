@@ -11,7 +11,7 @@ var Reinforce = require("Reinforcejs");
 var fs = require("fs");
 const JSON_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/src/ai/json";
 
-const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report18.txt";
+const REPORT_FILE = "/Users/hydr93/Developer/GitHub/Ogar-Bot/reports/report19.txt";
 
 // Number of tries till the cell gets to the TRIAL_RESET_MASS
 var trial = 1;
@@ -25,7 +25,7 @@ const MAX_SPEED = 150.0;
 // Maximum Distance between two cells
 const MAX_DISTANCE = 1183.0;
 const MAX_X = 1024;
-const MAX_Y = 512;
+const MAX_Y = 592;
 
 // Maximum Angle :)
 const MAX_ANGLE = Math.PI;
@@ -40,7 +40,7 @@ const VIRUS_NO = 0;
 const THREAT_NO = 0;
 const PREY_NO = 0;
 
-const DIRECTION_COUNT = 8;
+const DIRECTION_COUNT = 4;
 
 function QBot() {
     PlayerTracker.apply(this, Array.prototype.slice.call(arguments));
@@ -63,7 +63,7 @@ function QBot() {
 
     // Initialize DQN Environment
     var env = {};
-    env.getNumStates = function() { return (3*NEARBY_NO);};
+    env.getNumStates = function() { return (2*NEARBY_NO);};
     env.getMaxNumActions = function() {return DIRECTION_COUNT;}
     var spec = {
         update: 'qlearn',
@@ -74,7 +74,7 @@ function QBot() {
         experience_size: 5000,
         learning_steps_per_iteration: 20,
         tderror_clamp: 1.0,
-        num_hidden_units: 8,
+        num_hidden_units: 2,
         activation_function: 3
     };
     this.agent;
@@ -88,9 +88,9 @@ function QBot() {
     }
 
     // Report the important information to REPORT_FILE
-    fs.appendFile(REPORT_FILE, "Test 18, No Split:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
+    fs.appendFile(REPORT_FILE, "Test 19, No Split:\n\nNumber of States: "+env.getNumStates()+"\nNumber of Actions: "+env.getMaxNumActions()+"\nNumber of Hidden Units: "+spec.num_hidden_units+"\n");
     var date = new Date();
-    fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ NEARBY_NO +" Nearby\n\t\tDanger Level\n\t\tDirection\n\t\tDistance\nActions:\n\tWalk\n\t\t"+DIRECTION_COUNT+" Directions\n");
+    fs.appendFile(REPORT_FILE, "\nStates:\n\t"+ NEARBY_NO +" Nearby\n\t\tX Difference\n\t\tY Difference\nActions:\n\tWalk\n\t\t"+DIRECTION_COUNT+" Directions\n");
     fs.appendFile(REPORT_FILE, "\nTrial Reset Mass: "+TRIAL_RESET_MASS+"\n");
     fs.appendFile(REPORT_FILE, "\nTrial No: "+ trial++ +"\n\tBirth: "+date+"\n");
 
@@ -247,9 +247,13 @@ QBot.prototype.decide = function(cell) {
     var qList = []; //[1-(Math.abs(cell.position.x - 3000)/3000.0), 1-(Math.abs(cell.position.y - 3000)/3000.0)];
     for ( var i = 0; i < NEARBY_NO; i++) {
         if (nearby != null && i < nearby.length) {
-            var stateVector = this.getStateVectorFromLocation(cell, nearby[i]);
-            var danger = this.getDangerLevel(cell,nearby[i]);
-            qList.push(danger,stateVector.direction / MAX_ANGLE, stateVector.distance / MAX_DISTANCE);
+            //var stateVector = this.getStateVectorFromLocation(cell, nearby[i]);
+            //var danger = this.getDangerLevel(cell,nearby[i]);
+            //qList.push(danger,stateVector.direction / MAX_ANGLE, stateVector.distance / MAX_DISTANCE);
+
+            var distanceVector = this.getDistanceVector(cell, nearby[i]);
+            qList.push(distanceVector.x/MAX_X,distanceVector.y/MAX_Y);
+
         }
     }
 
